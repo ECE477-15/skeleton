@@ -2,6 +2,7 @@
 - [ ] External interrupt (hat presence detection & digital sensors)
 - [ ] Dynamic Hat setup
 - [ ] Hat configuration parameters
+- [ ] Function to fetch hat ID from ADC reading (lookup)
 - [x] EEPROM (most recent configuration)
 - [ ] Sleep and Wakeup
 - [x] Comparator (analog sensors)
