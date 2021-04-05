@@ -1,10 +1,10 @@
 # To-Do
-- [ ] External interrupt (hat presence detection & digital sensors)
+- [ ] External interrupt (hat presence detection & digital sensors) (Ethan)
 - [ ] Dynamic Hat setup
 - [ ] Hat configuration parameters
 - [ ] Function to fetch hat ID from ADC reading (lookup)
 - [x] EEPROM (most recent configuration)
-- [ ] Sleep and Wakeup
+- [ ] Sleep and Wakeup (Ethan)
 - [x] Comparator (analog sensors)
 - [ ] WiFi Firmware Driver (uart)
 - [ ] XBee Firmware Driver (uart)
