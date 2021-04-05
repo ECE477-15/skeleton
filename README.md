@@ -2,9 +2,9 @@
 - [ ] External interrupt (hat presence detection & digital sensors)
 - [ ] Dynamic Hat setup
 - [ ] Hat configuration parameters
-- [ ] EEPROM (most recent configuration)
+- [x] EEPROM (most recent configuration)
 - [ ] Sleep and Wakeup
-- [ ] Comparator (analog sensors)
+- [x] Comparator (analog sensors)
 - [ ] WiFi Firmware Driver (uart)
 - [ ] XBee Firmware Driver (uart)
 - [ ] Battery Babysitter Firmware Driver (i2c)
