@@ -87,9 +87,17 @@ uint32_t get_hat_adc(void) {
 	return hat_res;
 }
 
-hat_t get_hat_from_adc(uint32_t hat_resistor_value) {
+hat_t get_hat_from_adc(float hat_resistor_value) {
 	// TODO
-
+    for (int i = 0, i <= HAT_LIST_LEN, i++)
+    {
+        upLim = 1.05 * hat_list[i].hat_resistance;
+        lwLim = 0.95 * hat_list[i].hat_resistance;
+        if ((resVal >= lwLim) || (resVal <= upLim))
+        {
+            return((hat_t)i)
+        }
+    }
 	return 0;
 }
 
