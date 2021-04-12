@@ -72,6 +72,13 @@ uint32_t get_hat_adc(void) {
 	// Set PA5 to analog
 	GPIOA->MODER |= (GPIO_MODER_MODE5);
 
+	// Set PA7 to output
+	GPIOA->MODER &= ~(GPIO_MODER_MODE7);
+	GPIOA->MODER |= (GPIO_MODER_MODE7_0);
+
+	// Set output to low
+	GPIOA->BSRR = GPIO_BSRR_BR_7;
+
 	// setup adc clocks, etc
 	adc_setup();
 
@@ -79,10 +86,14 @@ uint32_t get_hat_adc(void) {
 
 	uint32_t VREFINT_DATA = adc_get_vref();
 
+	// get reference voltage
 	float vdd_a = 3.0f * (float)(VREFINT_CAL) / (float)VREFINT_DATA;
+
+	// get voltage at the adc pin (calibrated)
 	float v_pin = vdd_a * (float)adc_read / (float)0xFFF; // using 0xFFF as max value of 12bit reading
 
-	float hat_res = ((10000)*(vdd_a-v_pin)) / v_pin;
+	// calculate resistance based on MCU_HAT_REF_RES
+	float hat_res = ((MCU_HAT_REF_RES)*(vdd_a-v_pin)) / v_pin;
 
 	return hat_res;
 }
