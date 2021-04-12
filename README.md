@@ -8,7 +8,7 @@
 - [x] Comparator (analog sensors)
 - [ ] WiFi Firmware Driver (uart)
 - [ ] XBee Firmware Driver (uart)
-- [ ] Battery Babysitter Firmware Driver (i2c)
+- [x] Battery Babysitter Firmware Driver (i2c)
 - [x] UART Peripheral Interface
 - [x] ADC Peripheral Interface
 - [x] I2C Peripheral Interface
