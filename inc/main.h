@@ -55,7 +55,7 @@ void xbee_init(void);
 void xbee_uart_handler(void);
 void setup_hat(void);
 uint32_t get_hat_adc(void);
-hat_t get_hat_from_adc(uint32_t adcReading);
+hat_t get_hat_from_adc(float adcReading);
 void declare_hat(hat_t);
 void reset_hat_gpio(void);
 
