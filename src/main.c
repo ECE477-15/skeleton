@@ -1,8 +1,10 @@
 #include "main.h"
+#include "adc.h"
 
 // separate file for each peripheral, separate file for each firmware/driver for sensor
 
 int main(void) {
+	setup();
 	get_initial_state();
 	xbee_init();
 
@@ -16,8 +18,21 @@ int main(void) {
 	}
 }
 
+void setup() {
+}
+
+uint16_t hat_is_connected() {
+	// Enable GPIOA clock
+	RCC->IOPENR |= RCC_IOPENR_GPIOAEN;
+
+	// Set PA5 to input
+	GPIOA->MODER &= ~(GPIO_MODER_MODE5);
+
+	return ((GPIOA->IDR & GPIO_IDR_ID5) != 0U);
+}
+
 void get_initial_state() {
-	if(1) { // hat is connected
+	if(hat_is_connected()) { // hat is connected
 //		declared_config = read_from_eeprom(); // what was the last declared hat (hat config sent to home assistant)
 
 		uint32_t hat_adc = get_hat_adc();
@@ -52,12 +67,27 @@ void xbee_uart_handler(void) {
 }
 
 uint32_t get_hat_adc(void) {
-	// TODO
+	// Enable GPIOA clock
+	RCC->IOPENR |= RCC_IOPENR_GPIOAEN;
+	// Set PA5 to analog
+	GPIOA->MODER |= (GPIO_MODER_MODE5);
 
-	return 0;
+	// setup adc clocks, etc
+	adc_setup();
+
+	uint32_t adc_read = adc_oneshot(ADC_CHSELR_CHSEL5);
+
+	uint32_t VREFINT_DATA = adc_get_vref();
+
+	float vdd_a = 3.0f * (float)(VREFINT_CAL) / (float)VREFINT_DATA;
+	float v_pin = vdd_a * (float)adc_read / (float)0xFFF; // using 0xFFF as max value of 12bit reading
+
+	float hat_res = ((10000)*(vdd_a-v_pin)) / v_pin;
+
+	return hat_res;
 }
 
-hat_t get_hat_from_adc(uint32_t adcReading) {
+hat_t get_hat_from_adc(uint32_t hat_resistor_value) {
 	// TODO
 
 	return 0;

@@ -46,6 +46,8 @@ typedef struct {
 } global_state_t;
 
 /******* function declarations ********/
+void setup(void);
+uint16_t hat_is_connected();
 void get_initial_state(void);
 void xbee_init(void);
 void xbee_uart_handler(void);
