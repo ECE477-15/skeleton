@@ -3,6 +3,8 @@
 
 #include <stm32l0xx.h>
 
+#define MCU_HAT_REF_RES (10000)
+
 /****** Type Defs & Structs ********/
 typedef void (*fn_ptr)(void);
 
