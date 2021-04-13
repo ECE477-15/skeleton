@@ -19,7 +19,8 @@ void adc_enable();
 void adc_disable();
 uint32_t adc_oneshot(uint32_t channel);
 
-static __inline uint32_t adc_get_vref() {
+
+__attribute__( ( always_inline ) ) __STATIC_INLINE  uint32_t adc_get_vref() {
 	ADC->CCR |= ADC_CCR_VREFEN;
 	uint32_t VREFINT_DATA = adc_oneshot(ADC_CHSELR_CHSEL17);
 	ADC->CCR &= ~(ADC_CCR_VREFEN);

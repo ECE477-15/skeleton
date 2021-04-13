@@ -6,7 +6,6 @@
  */
 
 #include <adc.h>
-#include "system_stm32l0xx.h"
 
 void adc_calibrate() {
 	if ((ADC1->CR & ADC_CR_ADEN) != 0) {

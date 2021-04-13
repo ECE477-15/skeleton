@@ -1,26 +1,59 @@
 #include "main.h"
 #include "adc.h"
+#include "eeprom.h"
+#include "hats.h"
+#include "sleep.h"
 
 // separate file for each peripheral, separate file for each firmware/driver for sensor
+void hat_init();
+void hat_deinit();
 
 int main(void) {
 	setup();
 	get_initial_state();
-	xbee_init();
 
 	while(1) {
-		if(hat_flag != 0 && hat_flag_poll != 0) {	// attend to hat
-			hat_flag_poll();
+		/****** Hat Connected or Disconnected ******/
+		if(hat_conn_flag != 0) {
+			if(global_state.hatDetectTrig == hat_connect) {
+				// A hat was connected
+				hat_init();
+			} else {
+				// A hat was disconnected
+				hat_deinit();
+			}
+			hat_conn_flag = 0x0;
 		}
-		if(xbee_uart_flag) {		// xbee uart action needed
+
+		/****** Hat needs attention ******/
+		if(hat_flag != 0) {
+			fn_ptr handler = GET_HAT_CONFIG(global_state.connectedHat)->handler;
+			if(handler != 0) {
+				handler();
+			}
+			hat_flag = 0;
+		}
+
+		/****** XBee needs attention ******/
+		if(xbee_uart_flag) {
 			xbee_uart_handler();
 		}
 	}
 }
 
 void setup() {
-	// Clocks?
-	// Disable everything, don't know what state it's in
+	// Clocks - enable, speed, etc
+	RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN;
+
+	// Disable everything - don't know what state it's in
+	hat_conn_flag = 0x0;
+	hat_flag = 0x0;
+
+	// xbee inits
+	xbee_init();
+
+	// battery babysitter inits
+	battery_baby_init();
 }
 
 uint16_t hat_is_connected() {
@@ -30,37 +63,78 @@ uint16_t hat_is_connected() {
 	// Set PA5 to input
 	GPIOA->MODER &= ~(GPIO_MODER_MODE5);
 
+	// Set PA7 to analog (disable the external pull-down of voltage divider)
+	GPIOA->MODER |= GPIO_MODER_MODE7;
+
+	// wait, in case of any capacitance?
+	for(uint16_t i = 0; i < 500; ++i);
+
 	return ((GPIOA->IDR & GPIO_IDR_ID5) != 0U);
 }
 
 void get_initial_state() {
 	if(hat_is_connected()) { // hat is connected
-//		declared_config = read_from_eeprom(); // what was the last declared hat (hat config sent to home assistant)
-
-		uint32_t hat_adc = get_hat_adc();
-		global_state.connectedHat = get_hat_from_adc(hat_adc);
-		global_state.connectedHatConfig = &(hat_list[global_state.connectedHat]);
-
-		if(1) {	// current hat == declared hat
-			// do nothing
-		} else {
-			declare_hat(global_state.connectedHat);
-		}
-
-		setup_hat();
-	} else {
-		declare_hat(not_connected);
-		// setup interrupt for hat connection
-		// go to sleep
+		hat_init();
+	} else { // no hat connected
+		hat_deinit();
 	}
 }
 
-void declare_hat(hat_t connHat) {
+// A hat is determined to be connected, start to do some setup
+void hat_init() {
+	// Get last hat config reported to homeassistant
+	uint16_t lastHat;
+	EEPROM_READ(eeprom_config->declaredHat, lastHat);
+
+	// Get hat currently connected
+	uint32_t hat_adc = get_hat_adc();
+	global_state.connectedHat = get_hat_from_adc(hat_adc);
+
+	// update homeassistant if this is a different hat
+	if(global_state.connectedHat != lastHat) {
+		declare_hat();
+	}
+
+	// setup GPIO aspect of hat
+	setup_hat();
+
+	// setup interrupt for hat disconnection
+	global_state.hatDetectTrig = hat_disconnect;
+	hat_detect_interrupt();
+}
+
+void hat_deinit() {
+	// no hat connected
+	global_state.connectedHat = not_connected;
+
+	// tell homeassistant so (this also updates eeprom)
+//	declare_hat();	// ACTUALLY, DONT DO THIS: if same hat gets disconnected then reconnected, want nothing to change
+
+	// nothing connected, reset the GPIO
+	reset_hat_gpio();
+
+	// setup interrupt for hat connection
+	global_state.hatDetectTrig = hat_connect;
+	hat_detect_interrupt();
+
+	// go to sleep (stop); can only wake-up on EXTI event
+	enter_stop();
+}
+
+void declare_hat() {
 	// send current hat setup to home assistant
+	// TODO
+
 	// set declared_config in eeprom
+	uint16_t connHat = (uint16_t)global_state.connectedHat;
+	EEPROM_WRITE(eeprom_config->declaredHat, connHat);
 }
 
 void xbee_init(void) {
+	// TODO
+}
+
+void battery_baby_init(void) {
 	// TODO
 }
 
@@ -116,17 +190,17 @@ hat_t get_hat_from_adc(float hat_resistor_value) {
             return (hat_t)i;
         }
     }
-	return (hat_t)0;
+	return not_connected;
 }
 
 void setup_hat() {
 	reset_hat_gpio();
-	global_state.connectedHatConfig->gpio_setup();
+	GET_HAT_CONFIG(global_state.connectedHat)->gpio_setup();
 
-	hat_flag_poll = 0; 	// set to some function
-	hat_flag = 0; 		// reset flag
+	hat_flag = 0; 			// reset flag
 }
 
 void reset_hat_gpio() {
-	// TODO
+	SET_BIT(GPIOB->MODER, GPIO_MODER_MODE1 | GPIO_MODER_MODE10 | GPIO_MODER_MODE11);	// set to analog (reset value)
+	SET_BIT(GPIOA->MODER, GPIO_MODER_MODE6);											// set to analog (reset value)
 }
