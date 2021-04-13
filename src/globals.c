@@ -20,10 +20,15 @@ hat_config_t hat_list[HAT_LIST_LEN] = {
 	[led_driver].gpio_setup = 0,	// i2c gpio init
 	[led_driver].type = i2c,
 
-	[bool_switch].friendly_name = "Boolean Sensor/Switch",
-	[bool_switch].hat_resistance = 3,
-	[bool_switch].gpio_setup = 0,	// external interrupt gpio init
-	[bool_switch].type = external_interrupt,
+	[magnet_switch].friendly_name = "Magnet Sensor",
+	[magnet_switch].hat_resistance = 15000,
+	[magnet_switch].gpio_setup = 0,	// external interrupt gpio init
+	[magnet_switch].type = external_interrupt,
+
+	[wifi_gateway].friendly_name = "WiFi Gateway",
+	[wifi_gateway].hat_resistance = 10000,
+	[wifi_gateway].gpio_setup = 0,	// external interrupt gpio init
+	[wifi_gateway].type = external_interrupt,
 };
 
 // flags & handlers

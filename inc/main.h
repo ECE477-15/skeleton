@@ -12,7 +12,8 @@ typedef enum {
 	not_connected,
 	temp_hum,
 	led_driver,
-	bool_switch,
+	magnet_switch,
+	wifi_gateway,
 
 	HAT_LIST_LEN
 } hat_t;

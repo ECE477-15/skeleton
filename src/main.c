@@ -19,6 +19,8 @@ int main(void) {
 }
 
 void setup() {
+	// Clocks?
+	// Disable everything, don't know what state it's in
 }
 
 uint16_t hat_is_connected() {
@@ -72,19 +74,24 @@ uint32_t get_hat_adc(void) {
 	// Set PA5 to analog
 	GPIOA->MODER |= (GPIO_MODER_MODE5);
 
-	// Set PA7 to output
+	// Setup PA7 to output
 	GPIOA->MODER &= ~(GPIO_MODER_MODE7);
 	GPIOA->MODER |= (GPIO_MODER_MODE7_0);
+	GPIOA->OTYPER &= ~(GPIO_OTYPER_OT_7);
+	GPIOA->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEED7);
+	GPIOA->OSPEEDR |= GPIO_OSPEEDER_OSPEED7_1;
 
 	// Set output to low
 	GPIOA->BSRR = GPIO_BSRR_BR_7;
 
 	// setup adc clocks, etc
 	adc_setup();
+	adc_calibrate();
 
+	adc_enable();
 	uint32_t adc_read = adc_oneshot(ADC_CHSELR_CHSEL5);
-
 	uint32_t VREFINT_DATA = adc_get_vref();
+	adc_disable();
 
 	// get reference voltage
 	float vdd_a = 3.0f * (float)(VREFINT_CAL) / (float)VREFINT_DATA;
@@ -95,6 +102,8 @@ uint32_t get_hat_adc(void) {
 	// calculate resistance based on MCU_HAT_REF_RES
 	float hat_res = ((MCU_HAT_REF_RES)*(vdd_a-v_pin)) / v_pin;
 
+	// Set PA7 to analog to prevent current drain
+	GPIOA->MODER |= GPIO_MODER_MODE7;
 	return hat_res;
 }
 

@@ -14,6 +14,9 @@
 #define VREFINT_CAL (*VREFINT_CAL_ADDR)
 
 void adc_setup();
+void adc_calibrate();
+void adc_enable();
+void adc_disable();
 uint32_t adc_oneshot(uint32_t channel);
 
 static __inline uint32_t adc_get_vref() {
