@@ -11,11 +11,21 @@ typedef void (*fn_ptr)(void);
 
 typedef enum {
 	not_connected,
+	
+	/* I2C */
 	temp_hum,
 	led_driver,
+	
+	/* Interrupt */
 	magnet_switch,
+	push_button,
+	PIR_motion,
+	force_resistor, /* Might be comparator (special interrupt) */
+	
+	/* Other */
+	IR_blaster,
 	wifi_gateway,
-
+	
 	HAT_LIST_LEN
 } hat_t;
 
