@@ -23,7 +23,7 @@ typedef struct
 #define EEPROM_READ(addr, dest) Eeprom_Read_Obj((uint8_t *) &(addr), (uint8_t *)&(dest), (uint16_t) sizeof(dest))
 #define EEPROM_WRITE(addr, dest) Eeprom_Write_Obj((uint8_t *) &(addr), (uint8_t *)&(dest), (uint16_t) sizeof(dest))
 
-#define EEPROM_READ_OBJ(addr, dest) Eeprom_Read_Obj((uint8_t *)(addr), (uint8_t *)&dest, (uint16_t) sizeof(dest))
-#define EEPROM_WRITE_OBJ(addr, dest) Eeprom_Write_Obj((uint8_t *)(addr), (uint8_t *)&dest, (uint16_t) sizeof(dest))
+#define EEPROM_READ_OBJ(addr, dest) Eeprom_Read_Obj((uint8_t *)(addr), (uint8_t *)&(dest), (uint16_t) sizeof(dest))
+#define EEPROM_WRITE_OBJ(addr, dest) Eeprom_Write_Obj((uint8_t *)(addr), (uint8_t *)&(dest), (uint16_t) sizeof(dest))
 
 #endif /* EEPROM_H_ */
