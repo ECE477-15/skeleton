@@ -64,11 +64,11 @@ void send_homeassistant_boolean_PB11() {
 	// TODO
 }
 
-void EXTI11_IRQHandler() {
+__attribute__( ( always_inline ) ) __STATIC_INLINE void EXTI11_IRQHandler() {
 	hat_flag = 0x1;
 }
 
-void EXTI5_IRQHandler() {
+__attribute__( ( always_inline ) ) __STATIC_INLINE void EXTI5_IRQHandler() {
 	// HAT CONNECTED!
 	hat_conn_flag = 0x1;
 }

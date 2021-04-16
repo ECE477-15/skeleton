@@ -148,14 +148,14 @@ uint32_t get_hat_adc(void) {
 	// Set PA5 to analog
 	GPIOA->MODER |= (GPIO_MODER_MODE5);
 
-	// Setup PA7 to output
+	// Setup PA7 to output (external pulldown)
 	GPIOA->MODER &= ~(GPIO_MODER_MODE7);
 	GPIOA->MODER |= (GPIO_MODER_MODE7_0);
 	GPIOA->OTYPER &= ~(GPIO_OTYPER_OT_7);
 	GPIOA->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEED7);
 	GPIOA->OSPEEDR |= GPIO_OSPEEDER_OSPEED7_1;
 
-	// Set output to low
+	// Set output to low (enable external pulldown)
 	GPIOA->BSRR = GPIO_BSRR_BR_7;
 
 	// setup adc clocks, etc
