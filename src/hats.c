@@ -58,10 +58,12 @@ void hat_detect_interrupt() {
 void send_homeassistant_boolean_PB11() {
 	uint16_t value = ((GPIOB->IDR & GPIO_IDR_ID11) != 0x0);
 
+	if (value) {
+		gpio_test();
+	}
 	// adjustment for active-low?
 
 	// send homeassistant an update on a boolean sensor value
-	// TODO
 }
 
 __attribute__( ( always_inline ) ) __STATIC_INLINE void EXTI11_IRQHandler() {

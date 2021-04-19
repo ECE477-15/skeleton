@@ -158,6 +158,7 @@ uint32_t get_hat_adc(void) {
 	// Set output to low (enable external pulldown)
 	GPIOA->BSRR = GPIO_BSRR_BR_7;
 
+//	for (int i = 0; i < 100; i++) {}
 	// setup adc clocks, etc
 	adc_setup();
 	adc_calibrate();

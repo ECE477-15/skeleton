@@ -35,6 +35,12 @@ hat_config_t hat_list[HAT_LIST_LEN] = {
 	[wifi_gateway].gpio_setup = 0,	// external interrupt gpio init
 	[wifi_gateway].type = external_interrupt,
 	[wifi_gateway].handler = 0,
+
+	[PIR_motion].friendly_name = "PIR Motion Sensor",
+	[PIR_motion].hat_resistance = 22000,
+	[PIR_motion].gpio_setup = hat_interrupt_PB11,
+	[PIR_motion].type = external_interrupt,
+	[PIR_motion].handler = send_homeassistant_boolean_PB11,
 };
 
 // flags & handlers
