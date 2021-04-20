@@ -86,3 +86,7 @@ void EXTI4_15_IRQHandler() {
 	}
 
 }
+
+void blank_setup() {
+
+}

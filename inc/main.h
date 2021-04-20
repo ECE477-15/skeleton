@@ -6,6 +6,9 @@
 #define MCU_HAT_REF_RES (10000) /* MCU Hat reference resistor */
 #define GET_HAT_CONFIG(HAT) (&(hat_list[HAT]))
 
+#define ATTR_OPTIMIZE(n)          __attribute__ ((optimize(XSTRING_(O##n))))
+#define __ALWAYS_INLINE 		  __attribute__ ((always_inline))
+
 /****** Type Defs & Structs ********/
 typedef void (*fn_ptr)(void);
 
@@ -85,13 +88,14 @@ uint32_t get_hat_adc(void);
 hat_t get_hat_from_adc(float adcReading);
 void declare_hat();
 void reset_hat_gpio(void);
+void error(uint32_t);
 
 /******* Global Variables ********/
 global_state_t global_state;
 hat_config_t hat_list[HAT_LIST_LEN];
-uint8_t hat_flag;
-uint8_t xbee_uart_flag;
-uint8_t hat_conn_flag;
+volatile uint8_t hat_flag;
+volatile uint8_t xbee_uart_flag;
+volatile uint8_t hat_conn_flag;
 
 #endif /* MAIN_H_ */
 

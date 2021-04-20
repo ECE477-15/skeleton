@@ -13,5 +13,6 @@
 void hat_interrupt_PB11(void);
 void hat_detect_interrupt();
 void send_homeassistant_boolean_PB11();
+void blank_setup(void);
 
 #endif /* HATS_H_ */

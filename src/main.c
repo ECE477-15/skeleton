@@ -3,13 +3,24 @@
 #include "eeprom.h"
 #include "hats.h"
 #include "sleep.h"
+#include "xbee.h"
+#include "ringBuf.h"
+#include "delay.h"
 
 // separate file for each peripheral, separate file for each firmware/driver for sensor
 void hat_init();
 void hat_deinit();
 
 int main(void) {
+	delay_init();
 	setup();
+
+	uint16_t xbee_status = 0;
+	uint32_t xbee_length = 0;
+
+	uart2_update_match(XBEE_CTRL_START);
+	uart2_receive();
+
 	get_initial_state();
 
 	while(1) {
@@ -34,9 +45,27 @@ int main(void) {
 			hat_flag = 0;
 		}
 
-		/****** XBee needs attention ******/
-		if(xbee_uart_flag) {
-			xbee_uart_handler();
+		/****** XBee receiving start ******/
+		if(uart2Flag != 0) {
+			xbee_status = 1; // xbee frame started
+			uart2Flag = 0;
+		}
+
+		/****** XBee receiving state machine ******/
+		if(xbee_status > 0) {
+			if(xbee_status == 1 && BUF_USED(uart2_rx_buffer) >= 4) {
+				if(BUF_GET_AT(uart2_rx_buffer, (uart2_rx_buffer->tail + 3)) != XBEE_FRAME_RX_PACKET) {
+					error(__LINE__);
+				}
+				xbee_length = (BUF_GET_AT(uart2_rx_buffer, (uart2_rx_buffer->tail + 1)) << 8) | BUF_GET_AT(uart2_rx_buffer, (uart2_rx_buffer->tail + 2));
+				xbee_status = 2;	// xbee frame length available
+			} else if(xbee_status == 2 && BUF_USED(uart2_rx_buffer) == (xbee_length + 4)) {
+				xbee_status = 3;
+			} else if(xbee_status == 3) {
+				// packet complete
+				xbee_rx_complete(xbee_length);
+				xbee_status = 0;
+			}
 		}
 	}
 }
@@ -50,7 +79,8 @@ void setup() {
 	hat_flag = 0x0;
 
 	// xbee inits
-	xbee_init();
+	uart2_init();
+	xbee_setup();
 
 	// battery babysitter inits
 	battery_baby_init();
@@ -130,10 +160,6 @@ void declare_hat() {
 	EEPROM_WRITE(eeprom_config->declaredHat, connHat);
 }
 
-void xbee_init(void) {
-	// TODO
-}
-
 void battery_baby_init(void) {
 	// TODO
 }
@@ -203,4 +229,16 @@ void setup_hat() {
 void reset_hat_gpio() {
 	SET_BIT(GPIOB->MODER, GPIO_MODER_MODE1 | GPIO_MODER_MODE10 | GPIO_MODER_MODE11);	// set to analog (reset value)
 	SET_BIT(GPIOA->MODER, GPIO_MODER_MODE6);											// set to analog (reset value)
+}
+
+void error(uint32_t source) {
+	RCC->IOPENR |= RCC_IOPENR_GPIOBEN;	// GPIOB Clock enable
+
+	GPIOB->MODER &= ~(GPIO_MODER_MODE4);
+	GPIOB->MODER |= GPIO_MODER_MODE4_0;
+	GPIOB->OTYPER &= ~(GPIO_OTYPER_OT_4);
+
+	GPIOB->BSRR = GPIO_BSRR_BS_4;
+
+	while(1);
 }
