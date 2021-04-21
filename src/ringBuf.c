@@ -32,6 +32,29 @@ uint16_t buf_writeStr(const char *str, Buffer *buffer) {
 	return 1;
 }
 
+uint16_t buf_writeStr_var(const char *str, Buffer *buffer) {	// Uses length stored in buffer, not defined (VARiable size)
+	int strLen = strlen(str);
+
+	if(strLen > BUF_AVAIL_VAR(buffer)) {
+		return 0;
+	}
+
+	if(buffer->head + strLen < (buffer->len)) { // single memcpy, not circular
+		memcpy(&(buffer->buffer[buffer->head]), str, strLen);
+		buffer->head += strLen;
+	} else { // two memcpy, circular
+		int firstSize = (buffer->len) - buffer->head;
+		memcpy(&(buffer->buffer[buffer->head]), str, firstSize);
+
+		int secondSize = strLen - firstSize;
+		memcpy(&(buffer->buffer[0]), &(str[firstSize]), secondSize);
+
+		buffer->head = secondSize;
+	}
+
+	return 1;
+}
+
 uint16_t buf_writeChars(Buffer *buffer, const char *str, size_t strLen) {
 	if(strLen > BUF_AVAIL(buffer)) {
 		return 0;

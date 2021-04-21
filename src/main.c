@@ -66,6 +66,7 @@ int main(void) {
 				if(BUF_GET_AT(uart2_rx_buffer, (uart2_rx_buffer->tail + 3)) == XBEE_FRAME_RX_PACKET) {
 					xbee_rx_complete(xbee_length);
 				} else {
+					// Some other type of packet was received, should be concerned?
 					buf_clear(uart2_rx_buffer);
 				}
 				xbee_status = 0;
@@ -101,21 +102,19 @@ uint16_t hat_is_connected() {
 	// Set PA8 to analog (disable the external pull-down of voltage divider)
 	SET_BIT(GPIOA->MODER, GPIO_MODER_MODE8);
 
-	// Set PA7 to input
-	CLEAR_BIT(GPIOA->MODER, GPIO_MODER_MODE7);
+	// Set PA4 to input
+	CLEAR_BIT(GPIOA->MODER, GPIO_MODER_MODE4);
 
 	// wait, in case of any capacitance/general stabalization
 	delay_ms(5);
 
-	return (READ_BIT(GPIOA->IDR, GPIO_IDR_ID7) != RESET);
+	return (READ_BIT(GPIOA->IDR, GPIO_IDR_ID4) != RESET);
 }
 
 void get_initial_state() {
 	if(hat_is_connected()) { // hat is connected
 		hat_init();
 	} else { // no hat connected
-		// TODO REMOVE ME, FOR DEBUG ONLY:::
-		uint32_t hat_adc = get_hat_adc();
 		hat_deinit();
 	}
 }
@@ -129,6 +128,8 @@ void hat_init() {
 	// Get hat currently connected
 	uint32_t hat_adc = get_hat_adc();
 	global_state.connectedHat = get_hat_from_adc(hat_adc);
+
+	global_state.connectedHat = wifi_gateway; // TODO remove me!!!
 
 	// update homeassistant if this is a different hat
 	if(global_state.connectedHat != lastHat) {
@@ -165,6 +166,8 @@ void hat_deinit() {
 void declare_hat() {
 	uint16_t connHat = (uint16_t)global_state.connectedHat;
 
+	// TODO MAYBE: if its a "not_connected" hat, don't update
+
 	// send current hat setup to home assistant
 	// TODO
 	tx_req_frame_t txReq = {
@@ -194,10 +197,8 @@ uint32_t get_hat_adc(void) {
 	// Enable GPIOA clock
 	SET_BIT(RCC->IOPENR, RCC_IOPENR_GPIOAEN);
 
-	// Set PA7 to analog
-	SET_BIT(GPIOA->MODER, GPIO_MODER_MODE7);
-
-	delay_ms(5);
+	// Set PA4 to analog
+	SET_BIT(GPIOA->MODER, GPIO_MODER_MODE4);
 
 	// Setup PA8 to output (external pulldown)
 	MODIFY_REG(GPIOA->MODER, GPIO_MODER_MODE8, GPIO_MODER_MODE8_0);				// output
@@ -207,12 +208,14 @@ uint32_t get_hat_adc(void) {
 	// Set output to low (enable external pulldown)
 	WRITE_REG(GPIOA->BSRR, GPIO_BSRR_BR_8); // Do the DRAIN
 
+	delay_ms(25);
+
 	// setup adc clocks, etc
 	adc_setup();
 	adc_calibrate();
 
 	adc_enable();
-	uint32_t adc_read = adc_oneshot(ADC_CHSELR_CHSEL7);
+	uint32_t adc_read = adc_oneshot(ADC_CHSELR_CHSEL4);
 	uint32_t VREFINT_DATA = adc_get_vref();
 	adc_disable();
 
@@ -223,7 +226,7 @@ uint32_t get_hat_adc(void) {
 	float v_pin = vdd_a * (float)adc_read / (float)0xFFF; // using 0xFFF as max value of 12bit reading
 
 	// calculate resistance based on MCU_HAT_REF_RES
-	float hat_res = ((MCU_HAT_REF_RES)*(vdd_a-v_pin)) / v_pin;
+	float hat_res = (((float)MCU_HAT_REF_RES)*(vdd_a-v_pin)) / v_pin;
 
 	// Set PA8 to analog to prevent current drain
 	SET_BIT(GPIOA->MODER, GPIO_MODER_MODE8);
@@ -245,6 +248,7 @@ hat_t get_hat_from_adc(float hat_resistor_value) {
 void setup_hat() {
 	reset_hat_gpio();
 	GET_HAT_CONFIG(global_state.connectedHat)->gpio_setup();
+	GET_HAT_CONFIG(global_state.connectedHat)->hat_initial_setup();
 
 	hat_flag = 0; 			// reset flag
 }

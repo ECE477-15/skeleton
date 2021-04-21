@@ -17,6 +17,8 @@ void uart2_init(void);
 void uart2_transmit(char * str);
 void uart2_receive(void);
 
+Big_Buffer *uart1_tx_buffer;
+Big_Buffer *uart1_rx_buffer;
 Buffer *uart2_tx_buffer;
 Buffer *uart2_rx_buffer;
 volatile uint16_t uart2Flag;

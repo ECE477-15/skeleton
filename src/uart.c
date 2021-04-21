@@ -9,6 +9,12 @@
 #include "main.h"
 #include <string.h>
 
+Big_Buffer _uart1_tx_buffer = {.head=0, .tail=0, .len=BIG_BUFFER_SIZE};
+Big_Buffer _uart1_rx_buffer = {.head=0, .tail=0, .len=BIG_BUFFER_SIZE};
+
+Big_Buffer *uart1_tx_buffer = &_uart1_tx_buffer;
+Big_Buffer *uart1_rx_buffer = &_uart1_rx_buffer;
+
 Buffer _uart2_tx_buffer = {.head=0, .tail=0, .len=BUFFER_SIZE};
 Buffer _uart2_rx_buffer = {.head=0, .tail=0, .len=BUFFER_SIZE};
 
@@ -138,6 +144,88 @@ void USART2_IRQHandler(void) {
 			// Transmit complete
 			if (IS_TX_COMPLETE) {
 				CLEAR_BIT(USART2->CR1, (USART_CR1_TXEIE | USART_CR1_TCIE));
+			}
+		} else {
+			// Error occurred
+			error(__LINE__);
+		}
+}
+
+void NMI_Handler() {}
+void SVC_Handler() {}
+void PendSV_Handler() {}
+void WWDG_IRQHandler() {}
+void PVD_IRQHandler() {}
+void RTC_IRQHandler() {}
+void RCC_IRQHandler() {}
+void EXTI0_1_IRQHandler() {}
+void EXTI2_3_IRQHandler() {}
+void TSC_IRQHandler() {}
+void DMA1_Channel1_IRQHandler() {}
+void DMA1_Channel2_3_IRQHandler() {}
+void DMA1_Channel4_7_IRQHandler() {}
+void LPTIM1_IRQHandler() {}
+void USART4_USART5_IRQHandler() {}
+void TIM2_IRQHandler() {}
+void TIM3_IRQHandler() {}
+void TIM6_DAC_IRQHandler() {}
+void TIM7_IRQHandler() {}
+void TIM21_IRQHandler() {}
+void I2C3_IRQHandler() {}
+void TIM22_IRQHandler() {}
+void I2C1_IRQHandler() {}
+void I2C2_IRQHandler() {}
+void SPI1_IRQHandler() {}
+void SPI2_IRQHandler() {}
+void USART1_IRQHandler() {}
+void LCD_IRQHandler() {}
+void USB_IRQHandler() {}
+
+void RNG_LPUART1_IRQHandler(void) {
+	uint32_t isrflags   = READ_REG(LPUART1->ISR);
+	uint32_t cr1its     = READ_REG(LPUART1->CR1);
+
+	uint32_t errorflags = (isrflags & (uint32_t)(USART_ISR_PE | USART_ISR_FE | USART_ISR_ORE | USART_ISR_NE));
+
+	// No errors
+	if (errorflags == 0U) {
+			// Receiving
+			if (IS_RECEIVING) {
+				char receiveData = (char) READ_REG(LPUART1->RDR);
+
+//				if(receiveData == '\r') {
+//					uartFlag = 1;
+//				}
+				if(READ_BIT(isrflags, USART_ISR_CMF) != RESET) {
+					WRITE_REG(LPUART1->ICR, USART_ICR_CMCF);
+					uart2Flag = 1;
+				}
+
+				int bufPos = (unsigned int)(uart1_rx_buffer->head + 1) % BIG_BUFFER_SIZE;
+
+				if(bufPos != uart1_rx_buffer->tail) {
+					uart1_rx_buffer->buffer[uart1_rx_buffer->head] = receiveData;
+					uart1_rx_buffer->head = bufPos;
+				} else {	// buffer overflow
+					error(__LINE__); // TODO
+				}
+			}
+			// transmitting
+			if (IS_TRANSMITTING) {
+				if(BUF_USED_VAR(uart1_tx_buffer) == 0) { // done transferring
+					// Disable the UART Transmit Data Register Empty Interrupt
+					CLEAR_BIT(LPUART1->CR1, USART_CR1_TXEIE);
+
+					// Enable the UART Transmit Complete Interrupt
+					SET_BIT(LPUART1->CR1, USART_CR1_TCIE);
+				} else {
+					// load next char into transmit data register
+					LPUART1->TDR = (uint8_t)(buf_consumeByte((Buffer *)uart1_tx_buffer) & (uint8_t)0xFF);
+				}
+			}
+			// Transmit complete
+			if (IS_TX_COMPLETE) {
+				CLEAR_BIT(LPUART1->CR1, (USART_CR1_TXEIE | USART_CR1_TCIE));
 			}
 		} else {
 			// Error occurred
