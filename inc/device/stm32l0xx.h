@@ -36,6 +36,4 @@ typedef enum
 
 #define MODIFY_REG(REG, CLEARMASK, SETMASK)  WRITE_REG((REG), (((READ_REG(REG)) & (~(CLEARMASK))) | (SETMASK)))
 
-void RNG_LPUART1_IRQHandler(void);
-
 #endif /* __STM32L0xx_H */

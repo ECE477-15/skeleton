@@ -1,3 +1,4 @@
+#include "uart.h"
 #include "main.h"
 #include "adc.h"
 #include "eeprom.h"

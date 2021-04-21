@@ -7,6 +7,7 @@
 
 #include "hats.h"
 #include "main.h"
+#include "uart.h"
 
 // Setup hat for PB11 generating interrupts on LO and HI (falling and rising)
 void hat_interrupt_PB11(void) {

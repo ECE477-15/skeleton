@@ -94,11 +94,6 @@ void uart2_update_match(uint8_t match) {
 	SET_BIT(USART2->CR1, USART_CR1_UE);
 }
 
-
-#define IS_RECEIVING (((isrflags & USART_ISR_RXNE) != RESET) && ((cr1its & USART_CR1_RXNEIE) != RESET))
-#define IS_TRANSMITTING (((isrflags & USART_ISR_TXE) != RESET) && ((cr1its & USART_CR1_TXEIE) != RESET))
-#define IS_TX_COMPLETE (((isrflags & USART_ISR_TC) != RESET) && ((cr1its & USART_CR1_TCIE) != RESET))
-
 void USART2_IRQHandler(void) {
 	uint32_t isrflags   = READ_REG(USART2->ISR);
 	uint32_t cr1its     = READ_REG(USART2->CR1);
@@ -150,36 +145,6 @@ void USART2_IRQHandler(void) {
 			error(__LINE__);
 		}
 }
-
-void NMI_Handler() {}
-void SVC_Handler() {}
-void PendSV_Handler() {}
-void WWDG_IRQHandler() {}
-void PVD_IRQHandler() {}
-void RTC_IRQHandler() {}
-void RCC_IRQHandler() {}
-void EXTI0_1_IRQHandler() {}
-void EXTI2_3_IRQHandler() {}
-void TSC_IRQHandler() {}
-void DMA1_Channel1_IRQHandler() {}
-void DMA1_Channel2_3_IRQHandler() {}
-void DMA1_Channel4_7_IRQHandler() {}
-void LPTIM1_IRQHandler() {}
-void USART4_USART5_IRQHandler() {}
-void TIM2_IRQHandler() {}
-void TIM3_IRQHandler() {}
-void TIM6_DAC_IRQHandler() {}
-void TIM7_IRQHandler() {}
-void TIM21_IRQHandler() {}
-void I2C3_IRQHandler() {}
-void TIM22_IRQHandler() {}
-void I2C1_IRQHandler() {}
-void I2C2_IRQHandler() {}
-void SPI1_IRQHandler() {}
-void SPI2_IRQHandler() {}
-void USART1_IRQHandler() {}
-void LCD_IRQHandler() {}
-void USB_IRQHandler() {}
 
 void RNG_LPUART1_IRQHandler(void) {
 	uint32_t isrflags   = READ_REG(LPUART1->ISR);

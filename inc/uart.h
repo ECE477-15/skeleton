@@ -13,6 +13,10 @@
 #include "stm32l0xx.h"
 #include "ringBuf.h"
 
+#define IS_RECEIVING (((isrflags & USART_ISR_RXNE) != RESET) && ((cr1its & USART_CR1_RXNEIE) != RESET))
+#define IS_TRANSMITTING (((isrflags & USART_ISR_TXE) != RESET) && ((cr1its & USART_CR1_TXEIE) != RESET))
+#define IS_TX_COMPLETE (((isrflags & USART_ISR_TC) != RESET) && ((cr1its & USART_CR1_TCIE) != RESET))
+
 void uart2_init(void);
 void uart2_transmit(char * str);
 void uart2_receive(void);
