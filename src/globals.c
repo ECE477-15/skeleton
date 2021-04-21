@@ -19,13 +19,13 @@ hat_config_t hat_list[HAT_LIST_LEN] = {
 	[temp_hum].handler = 0,
 
 	[led_driver].friendly_name = "LED Driver",
-	[led_driver].hat_resistance = 2,
+	[led_driver].hat_resistance = 27000,
 	[led_driver].gpio_setup = blank_setup,	// i2c gpio init
 	[led_driver].type = i2c,
 	[led_driver].handler = 0,
 
 	[magnet_switch].friendly_name = "Magnet Sensor",
-	[magnet_switch].hat_resistance = 3,
+	[magnet_switch].hat_resistance = 127000,
 	[magnet_switch].gpio_setup = hat_interrupt_PB11,
 	[magnet_switch].type = external_interrupt,
 	[magnet_switch].handler = send_homeassistant_boolean_PB11,

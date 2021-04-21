@@ -60,6 +60,7 @@ typedef struct {
 	uint16_t payloadLen;
 
 	uint8_t respFrameType;
+	bool expectResponse;
 //	respFn respCheck;
 } message_t;
 

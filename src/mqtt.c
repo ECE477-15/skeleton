@@ -53,4 +53,6 @@ void mqtt_value(uint64_t addr, char val1, char val2) {
 	if(global_state.connectedHat != wifi_gateway) {
 		error(__LINE__);
 	}
+
+	// TODO
 }

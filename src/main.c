@@ -54,16 +54,20 @@ int main(void) {
 		/****** XBee receiving state machine ******/
 		if(xbee_status > 0) {
 			if(xbee_status == 1 && BUF_USED(uart2_rx_buffer) >= 4) {
-				if(BUF_GET_AT(uart2_rx_buffer, (uart2_rx_buffer->tail + 3)) != XBEE_FRAME_RX_PACKET) {
-					error(__LINE__);
-				}
+//				if(BUF_GET_AT(uart2_rx_buffer, (uart2_rx_buffer->tail + 3)) != XBEE_FRAME_RX_PACKET) {
+//					error(__LINE__);
+//				}
 				xbee_length = (BUF_GET_AT(uart2_rx_buffer, (uart2_rx_buffer->tail + 1)) << 8) | BUF_GET_AT(uart2_rx_buffer, (uart2_rx_buffer->tail + 2));
 				xbee_status = 2;	// xbee frame length available
 			} else if(xbee_status == 2 && BUF_USED(uart2_rx_buffer) == (xbee_length + 4)) {
 				xbee_status = 3;
 			} else if(xbee_status == 3) {
 				// packet complete
-				xbee_rx_complete(xbee_length);
+				if(BUF_GET_AT(uart2_rx_buffer, (uart2_rx_buffer->tail + 3)) == XBEE_FRAME_RX_PACKET) {
+					xbee_rx_complete(xbee_length);
+				} else {
+					buf_clear(uart2_rx_buffer);
+				}
 				xbee_status = 0;
 			}
 		}
@@ -72,7 +76,7 @@ int main(void) {
 
 void setup() {
 	// Clocks - enable, speed, etc
-	RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN;
+	SET_BIT(RCC->APB2ENR, RCC_APB2ENR_SYSCFGEN);
 
 	// Disable everything - don't know what state it's in
 	hat_conn_flag = 0x0;
@@ -87,25 +91,31 @@ void setup() {
 }
 
 uint16_t hat_is_connected() {
+	// VIHmin = 0.39VDD+0.59 (all pins except BOOT0, PC15, PH0/1 VIHmin = 0.45VDD+0.38 for BOOT0, PC15, PH0/1
+	// 			= 1.877V @ 3.3Vdd
+	// VILmax = 0.3VDD
+
 	// Enable GPIOA clock
-	RCC->IOPENR |= RCC_IOPENR_GPIOAEN;
+	SET_BIT(RCC->IOPENR, RCC_IOPENR_GPIOAEN);
 
-	// Set PA5 to input
-	GPIOA->MODER &= ~(GPIO_MODER_MODE5);
+	// Set PA8 to analog (disable the external pull-down of voltage divider)
+	SET_BIT(GPIOA->MODER, GPIO_MODER_MODE8);
 
-	// Set PA7 to analog (disable the external pull-down of voltage divider)
-	GPIOA->MODER |= GPIO_MODER_MODE7;
+	// Set PA7 to input
+	CLEAR_BIT(GPIOA->MODER, GPIO_MODER_MODE7);
 
-	// wait, in case of any capacitance?
-	for(uint16_t i = 0; i < 500; ++i);
+	// wait, in case of any capacitance/general stabalization
+	delay_ms(5);
 
-	return ((GPIOA->IDR & GPIO_IDR_ID5) != 0U);
+	return (READ_BIT(GPIOA->IDR, GPIO_IDR_ID7) != RESET);
 }
 
 void get_initial_state() {
 	if(hat_is_connected()) { // hat is connected
 		hat_init();
 	} else { // no hat connected
+		// TODO REMOVE ME, FOR DEBUG ONLY:::
+		uint32_t hat_adc = get_hat_adc();
 		hat_deinit();
 	}
 }
@@ -148,15 +158,27 @@ void hat_deinit() {
 	hat_detect_interrupt();
 
 	// go to sleep (stop); can only wake-up on EXTI event
+//	enter_stop_cond(hat_is_connected);
 	enter_stop();
 }
 
 void declare_hat() {
+	uint16_t connHat = (uint16_t)global_state.connectedHat;
+
 	// send current hat setup to home assistant
 	// TODO
+	tx_req_frame_t txReq = {
+			.addrH = ENDIAN_SWAP32(0x0),
+			.addrL = ENDIAN_SWAP32(0xFFFF),
+	};
+	uint8_t payload[3] = {(char)discover, 0x0, 0x0};
+	payload[1] = connHat & 0xFF;
+	payload[2] = connHat >> 8;
+	xbee_msg->payload = payload;
+	xbee_msg->payloadLen = 3;
+	xbee_send_message(&txReq);
 
 	// set declared_config in eeprom
-	uint16_t connHat = (uint16_t)global_state.connectedHat;
 	EEPROM_WRITE(eeprom_config->declaredHat, connHat);
 }
 
@@ -170,26 +192,27 @@ void xbee_uart_handler(void) {
 
 uint32_t get_hat_adc(void) {
 	// Enable GPIOA clock
-	RCC->IOPENR |= RCC_IOPENR_GPIOAEN;
-	// Set PA5 to analog
-	GPIOA->MODER |= (GPIO_MODER_MODE5);
+	SET_BIT(RCC->IOPENR, RCC_IOPENR_GPIOAEN);
 
-	// Setup PA7 to output (external pulldown)
-	GPIOA->MODER &= ~(GPIO_MODER_MODE7);
-	GPIOA->MODER |= (GPIO_MODER_MODE7_0);
-	GPIOA->OTYPER &= ~(GPIO_OTYPER_OT_7);
-	GPIOA->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEED7);
-	GPIOA->OSPEEDR |= GPIO_OSPEEDER_OSPEED7_1;
+	// Set PA7 to analog
+	SET_BIT(GPIOA->MODER, GPIO_MODER_MODE7);
+
+	delay_ms(5);
+
+	// Setup PA8 to output (external pulldown)
+	MODIFY_REG(GPIOA->MODER, GPIO_MODER_MODE8, GPIO_MODER_MODE8_0);				// output
+	SET_BIT(GPIOA->OTYPER, GPIO_OTYPER_OT_8);									// open-drain
+	MODIFY_REG(GPIOA->OSPEEDR, GPIO_OSPEEDER_OSPEED8, GPIO_OSPEEDER_OSPEED8_1);	// high speed
 
 	// Set output to low (enable external pulldown)
-	GPIOA->BSRR = GPIO_BSRR_BR_7;
+	WRITE_REG(GPIOA->BSRR, GPIO_BSRR_BR_8); // Do the DRAIN
 
 	// setup adc clocks, etc
 	adc_setup();
 	adc_calibrate();
 
 	adc_enable();
-	uint32_t adc_read = adc_oneshot(ADC_CHSELR_CHSEL5);
+	uint32_t adc_read = adc_oneshot(ADC_CHSELR_CHSEL7);
 	uint32_t VREFINT_DATA = adc_get_vref();
 	adc_disable();
 
@@ -202,8 +225,8 @@ uint32_t get_hat_adc(void) {
 	// calculate resistance based on MCU_HAT_REF_RES
 	float hat_res = ((MCU_HAT_REF_RES)*(vdd_a-v_pin)) / v_pin;
 
-	// Set PA7 to analog to prevent current drain
-	GPIOA->MODER |= GPIO_MODER_MODE7;
+	// Set PA8 to analog to prevent current drain
+	SET_BIT(GPIOA->MODER, GPIO_MODER_MODE8);
 	return hat_res;
 }
 
@@ -231,14 +254,17 @@ void reset_hat_gpio() {
 	SET_BIT(GPIOA->MODER, GPIO_MODER_MODE6);											// set to analog (reset value)
 }
 
+void HardFault_Handler(void) {
+	error(__LINE__);
+}
+
 void error(uint32_t source) {
-	RCC->IOPENR |= RCC_IOPENR_GPIOBEN;	// GPIOB Clock enable
+	SET_BIT(RCC->IOPENR, RCC_IOPENR_GPIOBEN);	// GPIOB Clock enable
 
-	GPIOB->MODER &= ~(GPIO_MODER_MODE4);
-	GPIOB->MODER |= GPIO_MODER_MODE4_0;
-	GPIOB->OTYPER &= ~(GPIO_OTYPER_OT_4);
+	MODIFY_REG(GPIOB->MODER, GPIO_MODER_MODE4, GPIO_MODER_MODE4_0);
+	CLEAR_BIT(GPIOB->OTYPER, GPIO_OTYPER_OT_4);
 
-	GPIOB->BSRR = GPIO_BSRR_BS_4;
+	WRITE_REG(GPIOB->BSRR, GPIO_BSRR_BS_4);
 
 	while(1);
 }

@@ -7,11 +7,12 @@
 - [x] Sleep and Wakeup - STOP working, SLEEP needs work
 - [x] Comparator (analog sensors)
 - [ ] WiFi Firmware Driver (uart)
-- [ ] XBee Firmware Driver (uart)
+- [x] XBee Firmware Driver (uart)
 - [x] Battery Babysitter Firmware Driver (i2c)
 - [x] UART Peripheral Interface
 - [x] ADC Peripheral Interface
 - [x] I2C Peripheral Interface
+- [] Switch Pid reading pin (PA5) to PA7; switch pull-down from PA7 to PA8 [this is to avoid the discovery board LED connected to PA5, messes with ADC readings]
 
 # Hat Pinout:
 | Pin   | I2C       | UART        | ADC       |

@@ -7,6 +7,8 @@
 
 #include <adc.h>
 
+// TODO convert all register manipulation to use macros
+
 void adc_calibrate() {
 	if ((ADC1->CR & ADC_CR_ADEN) != 0) {
 		ADC1->CR |= ADC_CR_ADDIS;

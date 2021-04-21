@@ -3,7 +3,7 @@
 
 #include <stm32l0xx.h>
 
-#define MCU_HAT_REF_RES (10000) /* MCU Hat reference resistor */
+#define MCU_HAT_REF_RES (33000) /* MCU Hat reference resistor */
 #define GET_HAT_CONFIG(HAT) (&(hat_list[HAT]))
 
 #define ATTR_OPTIMIZE(n)          __attribute__ ((optimize(XSTRING_(O##n))))
@@ -63,7 +63,7 @@ typedef enum {
 
 typedef struct {
 	char * friendly_name;
-	uint16_t hat_resistance;
+	uint32_t hat_resistance;
 	fn_ptr gpio_setup;
 	hat_conn_t type;
 	fn_ptr handler;
