@@ -22,6 +22,7 @@ Buffer *uart2_tx_buffer = &_uart2_tx_buffer;
 Buffer *uart2_rx_buffer = &_uart2_rx_buffer;
 
 volatile uint16_t uart2Flag = 0;
+volatile uint16_t uart1Flag = 0;
 
 void uart2_receive() {
 	// Enable the UART Error Interrupt: (Frame error, noise error, overrun error)
@@ -31,6 +32,14 @@ void uart2_receive() {
 	SET_BIT(USART2->CR1, USART_CR1_PEIE | USART_CR1_RXNEIE);
 }
 
+void uart1_receive() {
+	// Enable the UART Error Interrupt: (Frame error, noise error, overrun error)
+	SET_BIT(LPUART1->CR3, USART_CR3_EIE);
+
+	// Enable the UART Parity Error interrupt and Data Register Not Empty interrupt
+	SET_BIT(LPUART1->CR1, USART_CR1_PEIE | USART_CR1_RXNEIE);
+}
+
 void uart2_transmit(char * str) {
 	buf_writeStr(str, uart2_tx_buffer);
 
@@ -38,6 +47,14 @@ void uart2_transmit(char * str) {
 	SET_BIT(USART2->CR1, USART_CR1_TXEIE);
 }
 
+void uart1_transmit(char * str) {
+	buf_writeStr_var(str, (Buffer *)uart1_tx_buffer);
+
+	LPUART1->TDR = 0x0;
+
+	// Enable the Transmit Data Register Empty interrupt
+	SET_BIT(LPUART1->CR1, USART_CR1_TXEIE);
+}
 
 void uart2_init(void) {
 	// Enable Clock
@@ -92,6 +109,12 @@ void uart2_update_match(uint8_t match) {
 	CLEAR_BIT(USART2->CR1, USART_CR1_UE);
 	MODIFY_REG(USART2->CR2, USART_CR2_ADD, (match << USART_CR2_ADD_Pos));
 	SET_BIT(USART2->CR1, USART_CR1_UE);
+}
+
+void uart1_update_match(uint8_t match) {
+	CLEAR_BIT(LPUART1->CR1, USART_CR1_UE);
+	MODIFY_REG(LPUART1->CR2, USART_CR2_ADD, (match << USART_CR2_ADD_Pos));
+	SET_BIT(LPUART1->CR1, USART_CR1_UE);
 }
 
 void USART2_IRQHandler(void) {
@@ -158,21 +181,21 @@ void RNG_LPUART1_IRQHandler(void) {
 			if (IS_RECEIVING) {
 				char receiveData = (char) READ_REG(LPUART1->RDR);
 
-//				if(receiveData == '\r') {
-//					uartFlag = 1;
+				int bufPos = (unsigned int)(uart1_rx_buffer->head + 1) % BIG_BUFFER_SIZE;
+
+				//				if(bufPos != uart1_rx_buffer->tail) {
+									uart1_rx_buffer->buffer[uart1_rx_buffer->head] = receiveData;
+									uart1_rx_buffer->head = bufPos;
+				//				} else {	// buffer overflow
+				//					error(__LINE__); // TODO
+				//				}
+
+//				if(receiveData == '\n') {
+//					uart1Flag = 1;
 //				}
 				if(READ_BIT(isrflags, USART_ISR_CMF) != RESET) {
 					WRITE_REG(LPUART1->ICR, USART_ICR_CMCF);
-					uart2Flag = 1;
-				}
-
-				int bufPos = (unsigned int)(uart1_rx_buffer->head + 1) % BIG_BUFFER_SIZE;
-
-				if(bufPos != uart1_rx_buffer->tail) {
-					uart1_rx_buffer->buffer[uart1_rx_buffer->head] = receiveData;
-					uart1_rx_buffer->head = bufPos;
-				} else {	// buffer overflow
-					error(__LINE__); // TODO
+					uart1Flag++;
 				}
 			}
 			// transmitting
@@ -185,7 +208,7 @@ void RNG_LPUART1_IRQHandler(void) {
 					SET_BIT(LPUART1->CR1, USART_CR1_TCIE);
 				} else {
 					// load next char into transmit data register
-					LPUART1->TDR = (uint8_t)(buf_consumeByte((Buffer *)uart1_tx_buffer) & (uint8_t)0xFF);
+					LPUART1->TDR = (uint8_t)(buf_consumeByte_var((Buffer *)uart1_tx_buffer) & (uint8_t)0xFF);
 				}
 			}
 			// Transmit complete

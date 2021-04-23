@@ -93,7 +93,7 @@ void blank_setup() {
 }
 
 void hat_gpio_setup_uart() {
-	uint32_t baudrate = 9600; // TODO need to dynamically set this
+	uint32_t baudrate = 115200; // TODO need to dynamically set this
 
 	// Enable Clock
 	SET_BIT(RCC->IOPENR, RCC_IOPENR_GPIOAEN | RCC_IOPENR_GPIOBEN);
@@ -126,19 +126,23 @@ void hat_gpio_setup_uart() {
 	// Disable UART peripheral for configuration
 	CLEAR_BIT(LPUART1->CR1, USART_CR1_UE);
 
+	// Set clock source
+	CLEAR_BIT(RCC->CCIPR, RCC_CCIPR_LPUART1SEL);	// 00:APB clock, 01:System clock, 10:HSI16 clock, 11:LSE clock
+//	MODIFY_REG(RCC->CCIPR, RCC_CCIPR_LPUART1SEL, RCC_CCIPR_LPUART1SEL_0);
+
 	// Configure CR1
 	MODIFY_REG(LPUART1->CR1, (USART_CR1_M | USART_CR1_PCE | USART_CR1_PS | USART_CR1_TE | USART_CR1_RE | USART_CR1_OVER8), (USART_CR1_TE | USART_CR1_RE));
 
 	// Configure CR2
-	MODIFY_REG(LPUART1->CR2, (USART_CR2_ADD | USART_CR2_STOP | USART_CR2_LINEN | USART_CR2_CLKEN), (((uint8_t)'\r') << USART_CR2_ADD_Pos));
+	MODIFY_REG(LPUART1->CR2, (USART_CR2_ADD | USART_CR2_STOP | USART_CR2_LINEN | USART_CR2_CLKEN), (((uint8_t)'\n') << USART_CR2_ADD_Pos));
 
 	// Configure CR3
 	MODIFY_REG(LPUART1->CR3, (USART_CR3_RTSE | USART_CR3_CTSE | USART_CR3_ONEBIT | USART_CR3_SCEN | USART_CR3_HDSEL | USART_CR3_IREN), (USART_CR3_RTSE | USART_CR3_CTSE));
 
 	// Set Baud-rate
-	#define UART_DIV_SAMPLING16(__PCLK__, __BAUD__)  (((__PCLK__) + ((__BAUD__)/2U)) / (__BAUD__))
-	uint32_t PCLK2Freq = SystemCoreClock >> APBPrescTable[(RCC->CFGR & RCC_CFGR_PPRE2) >> RCC_CFGR_PPRE2_Pos];
-	LPUART1->BRR = (uint16_t)(UART_DIV_SAMPLING16(PCLK2Freq, baudrate));
+	#define UART_DIV_LPUART(__PCLK__, __BAUD__)      (((((uint64_t)(__PCLK__)*256U)) + ((__BAUD__)/2U)) / (__BAUD__))
+	uint32_t pclk = (SystemCoreClock >> APBPrescTable[(RCC->CFGR & RCC_CFGR_PPRE1) >> RCC_CFGR_PPRE1_Pos]);				// only if RCC->CCIPR = 0b00
+	LPUART1->BRR = (uint32_t)(UART_DIV_LPUART(pclk, baudrate));
 
 	// Enable UART peripheral
 	SET_BIT(LPUART1->CR1, USART_CR1_UE);

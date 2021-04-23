@@ -20,12 +20,18 @@
 void uart2_init(void);
 void uart2_transmit(char * str);
 void uart2_receive(void);
+void uart2_update_match(uint8_t);
+
+void uart1_transmit(char * str);
+void uart1_receive(void);
+void uart1_update_match(uint8_t match);
 
 Big_Buffer *uart1_tx_buffer;
 Big_Buffer *uart1_rx_buffer;
 Buffer *uart2_tx_buffer;
 Buffer *uart2_rx_buffer;
+
 volatile uint16_t uart2Flag;
-void uart2_update_match(uint8_t);
+volatile uint16_t uart1Flag;
 
 #endif /* UART_H_ */
