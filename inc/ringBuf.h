@@ -19,11 +19,13 @@
 #define BUF_USED(buffer) ((buffer->head - buffer->tail + BUFFER_SIZE) % BUFFER_SIZE)
 #define BUF_AVAIL(buffer) (BUFFER_SIZE - ((buffer->head - buffer->tail + BUFFER_SIZE) % BUFFER_SIZE) - 1)
 #define BUF_GET_AT(BUF, ind) ( BUF->buffer[(((ind) + (BUFFER_SIZE)) % (BUFFER_SIZE))] )
+#define BUF_GET_AT_BIG(BUF, ind) ( BUF->buffer[(((ind) + (BIG_BUFFER_SIZE)) % (BIG_BUFFER_SIZE))] )
 
 #define BUF_USED_VAR(buffer) ((buffer->head - buffer->tail + (buffer->len)) % (buffer->len))
 #define BUF_AVAIL_VAR(buffer) ((buffer->len) - ((buffer->head - buffer->tail + (buffer->len)) % (buffer->len)) - 1)
 #define BUF_GET_AT_VAR(BUF, ind) ( BUF->buffer[(((ind) + ((BUF->len))) % ((BUF->len)))] )
 #define BUF_GET_TOP_VAR(BUF, dec) ( BUF->buffer[((((BUF->head) - (dec)) + ((BUF->len))) % ((BUF->len)))] )
+
 
 #define BUF_PUSH(c, buf) buf->buffer[buf->head] = c; \
 	buf->head = (unsigned int)(buf->head + 1) % BUFFER_SIZE
