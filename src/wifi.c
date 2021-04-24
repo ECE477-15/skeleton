@@ -11,25 +11,28 @@
 #include "ringBuf.h"
 #include "delay.h"
 #include "stdbool.h"
+#include "String.h"
 
 typedef enum {
 	check_none,
 	check_OK,
 	check_ready,
 	check_conn_ip_ok,	// todo
-	check_mqttconn_ok	// todo
+	check_mqttconn_ok,	// todo
+	check_smartconn
 } check_t;
 
 void wifi_send_AT(char * str, check_t check);
 void check_ok_fn();
 void check_ready_fn();
+void check_smartconn_fn();
 
 void wifi_setup() {
 	uart1_receive();
 
 	delay_ms(5000);	// wait, might try to connect/disconnect from previous session
 	wifi_send_AT("AT+RESTORE\r\n", check_ready);
-	wifi_send_AT("ATE1\r\n", check_OK);
+	wifi_send_AT("ATE1\r\n", check_OK); // prefer 0, can use 1 for debugging (fills buffer, more processing)
 	wifi_send_AT("AT+UART_DEF=115200,8,1,0,3\r\n", check_OK);
 	wifi_send_AT("AT\r\n", check_OK);
 
@@ -37,12 +40,11 @@ void wifi_setup() {
 	//	- provisioning
 	wifi_send_AT("AT+CWMODE=1\r\n", check_OK);
 
-//	wifi_send_at("AT+CWSTARTSMART=1\r\n", true);
-//	// WAIT for connected string
-//	wifi_send_at("AT+CWSTOPSMART\r\n", true);
+	wifi_send_AT("AT+CWSTARTSMART=1\r\n", check_smartconn);
+	wifi_send_AT("AT+CWSTOPSMART\r\n", check_OK);
 
 	// cheating it for now
-	wifi_send_AT("AT+CWJAP=\"sauce pan\",\"youidleweed420\"\r\n", check_OK);
+//	wifi_send_AT("AT+CWJAP=\"sauce pan\",\"youidleweed420\"\r\n", check_OK);
 
 	// Make sure mqtt connection established
 	wifi_send_AT("AT+MQTTUSERCFG=0,1,\"ESP32\",\"MuT\",\"MuTpass\",0,0,\"\"\r\n", check_OK);
@@ -68,10 +70,18 @@ void wifi_send_AT(char * str, check_t check) {
 	// Send the command
 	uart1_transmit(str);
 
-	if(check == check_OK) {
-		check_ok_fn();
-	} else if(check == check_ready) {
-		check_ready_fn();
+	switch(check) {
+		case check_OK:
+			check_ok_fn();
+			break;
+		case check_ready:
+			check_ready_fn();
+			break;
+		case check_smartconn:
+			check_smartconn_fn();
+			break;
+		default:
+			break;
 	}
 
 	// Clear the buffer
@@ -120,5 +130,40 @@ void check_ready_fn() {
 
 		prevHead = head;
 		prevLineLen = lineLen;
+	}
+}
+
+void check_smartconn_fn() {
+	bool alive = true;
+	uint8_t prevHead = uart1_rx_buffer->head;
+
+//	uint8_t connArr[12]; // debug
+//	uint8_t connI = 0; // debug
+
+	char match[] = "smartconfig connected wifi\r\n";
+	uint8_t strLen = strlen(match);
+
+	while(alive) {
+		while(uart1Flag == 0);
+		uint8_t head = uart1_rx_buffer->head;
+		uint8_t lineLen = head - prevHead;
+		uart1Flag--;
+
+//		connArr[connI++] = lineLen; // debug
+
+		if(lineLen == strLen) {
+			alive = true;
+			unsigned char *letter = &(uart1_rx_buffer->buffer[head - strLen - 1]);
+			unsigned char *last = &(uart1_rx_buffer->buffer[head]);
+			char *matchI = match;
+			for(;letter < last; letter++, matchI++) {
+				if(*letter != *matchI) {
+					alive = false;
+					break;
+				}
+			}
+		}
+
+		prevHead = head;
 	}
 }
