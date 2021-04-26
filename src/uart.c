@@ -43,7 +43,7 @@ void uart1_receive() {
 void uart2_transmit(char * str) {
 	buf_writeStr(str, uart2_tx_buffer);
 
-	USART2->TDR = 0x0;
+//	USART2->TDR = 0x0;
 
 	// Enable the Transmit Data Register Empty interrupt
 	SET_BIT(USART2->CR1, USART_CR1_TXEIE);
@@ -52,7 +52,7 @@ void uart2_transmit(char * str) {
 void uart1_transmit(char * str) {
 	buf_writeStr_var(str, (Buffer *)uart1_tx_buffer);
 
-	LPUART1->TDR = 0x0;
+//	LPUART1->TDR = 0x0;
 
 	// Enable the Transmit Data Register Empty interrupt
 	SET_BIT(LPUART1->CR1, USART_CR1_TXEIE);
