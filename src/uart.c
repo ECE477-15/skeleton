@@ -43,6 +43,8 @@ void uart1_receive() {
 void uart2_transmit(char * str) {
 	buf_writeStr(str, uart2_tx_buffer);
 
+	USART2->TDR = 0x0;
+
 	// Enable the Transmit Data Register Empty interrupt
 	SET_BIT(USART2->CR1, USART_CR1_TXEIE);
 }
@@ -58,40 +60,48 @@ void uart1_transmit(char * str) {
 
 void uart2_init(void) {
 	// Enable Clock
-	RCC->IOPENR |= RCC_IOPENR_GPIOAEN;
-	RCC->APB1ENR |= RCC_APB1ENR_USART2EN;
+	SET_BIT(RCC->IOPENR, RCC_IOPENR_GPIOAEN);
+	SET_BIT(RCC->APB1ENR, RCC_APB1ENR_USART2EN);
 
 	// Set PA0,1,2,3 to Alternate Function
-	GPIOA->MODER &= ~(GPIO_MODER_MODE0 | GPIO_MODER_MODE1 | GPIO_MODER_MODE2 | GPIO_MODER_MODE3);
-	GPIOA->MODER |= (GPIO_MODER_MODE0_1 | GPIO_MODER_MODE1_1 | GPIO_MODER_MODE2_1 | GPIO_MODER_MODE3_1);
+	MODIFY_REG(GPIOA->MODER, (GPIO_MODER_MODE0 | GPIO_MODER_MODE1 | GPIO_MODER_MODE2 | GPIO_MODER_MODE3), (GPIO_MODER_MODE0_1 | GPIO_MODER_MODE1_1 | GPIO_MODER_MODE2_1 | GPIO_MODER_MODE3_1));
 
 	// no pulls-up or pull-down
-	GPIOA->PUPDR &= ~(GPIO_PUPDR_PUPD0 | GPIO_PUPDR_PUPD1 | GPIO_PUPDR_PUPD2 | GPIO_PUPDR_PUPD3);
+	CLEAR_BIT(GPIOA->PUPDR, (GPIO_PUPDR_PUPD0 | GPIO_PUPDR_PUPD1 | GPIO_PUPDR_PUPD2 | GPIO_PUPDR_PUPD3));
 
 	// push-pull
-	GPIOA->OTYPER &= ~(GPIO_OTYPER_OT_0 | GPIO_OTYPER_OT_1 | GPIO_OTYPER_OT_2 | GPIO_OTYPER_OT_3);
+	CLEAR_BIT(GPIOA->OTYPER, (GPIO_OTYPER_OT_0 | GPIO_OTYPER_OT_1 | GPIO_OTYPER_OT_2 | GPIO_OTYPER_OT_3));
 
 	// very high speed
-	GPIOA->OSPEEDR |= (GPIO_OSPEEDER_OSPEED0 | GPIO_OSPEEDER_OSPEED1 | GPIO_OSPEEDER_OSPEED2 | GPIO_OSPEEDER_OSPEED3);
+	SET_BIT(GPIOA->OSPEEDR, (GPIO_OSPEEDER_OSPEED0 | GPIO_OSPEEDER_OSPEED1 | GPIO_OSPEEDER_OSPEED2 | GPIO_OSPEEDER_OSPEED3));
 
 	// AF4 = uart2
-	GPIOA->AFR[0] &= ~(GPIO_AFRL_AFSEL0 | GPIO_AFRL_AFSEL1 | GPIO_AFRL_AFSEL2 | GPIO_AFRL_AFSEL3);
-	GPIOA->AFR[0] |= (0x4 << GPIO_AFRL_AFSEL0_Pos) | (0x4 << GPIO_AFRL_AFSEL1_Pos) | (0x4 << GPIO_AFRL_AFSEL2_Pos) | (0x4 << GPIO_AFRL_AFSEL3_Pos);
+	MODIFY_REG(	GPIOA->AFR[0],
+				(GPIO_AFRL_AFSEL0 | GPIO_AFRL_AFSEL1 | GPIO_AFRL_AFSEL2 | GPIO_AFRL_AFSEL3),
+				(0x4 << GPIO_AFRL_AFSEL0_Pos) | (0x4 << GPIO_AFRL_AFSEL1_Pos) | (0x4 << GPIO_AFRL_AFSEL2_Pos) | (0x4 << GPIO_AFRL_AFSEL3_Pos)
+				);
 
 	// Disable UART peripheral for configuration
 	CLEAR_BIT(USART2->CR1, USART_CR1_UE);
 
 	// Configure CR1
-	USART2->CR1 &= ~(USART_CR1_M | USART_CR1_PCE | USART_CR1_PS | USART_CR1_TE | USART_CR1_RE | USART_CR1_OVER8);
-	USART2->CR1 |= USART_CR1_TE | USART_CR1_RE;
+	MODIFY_REG(	USART2->CR1,
+				(USART_CR1_M | USART_CR1_PCE | USART_CR1_PS | USART_CR1_TE | USART_CR1_RE | USART_CR1_OVER8),
+				(USART_CR1_TE | USART_CR1_RE)
+			);
 
 	// Configure CR2
-	CLEAR_BIT(USART2->CR2, (USART_CR2_STOP | USART_CR2_LINEN | USART_CR2_CLKEN | USART_CR2_ADD));
-	SET_BIT(USART2->CR2, (((uint8_t)'\r') << USART_CR2_ADD_Pos));
+	MODIFY_REG(	USART2->CR2,
+				(USART_CR2_STOP | USART_CR2_LINEN | USART_CR2_CLKEN | USART_CR2_ADD),
+				(((uint8_t)'\r') << USART_CR2_ADD_Pos)
+			);
 
 	// Configure CR3
-	USART2->CR3 &= ~(USART_CR3_RTSE | USART_CR3_CTSE | USART_CR3_ONEBIT | USART_CR3_SCEN | USART_CR3_HDSEL | USART_CR3_IREN);
-	USART2->CR3 |= USART_CR3_RTSE | USART_CR3_CTSE;
+	MODIFY_REG(	USART2->CR3,
+				(USART_CR3_RTSE | USART_CR3_CTSE | USART_CR3_ONEBIT | USART_CR3_SCEN | USART_CR3_HDSEL | USART_CR3_IREN),
+				(USART_CR3_RTSE | USART_CR3_CTSE)
+//				(0x0) // hardware flow control?
+			);
 
 	// Set Baud-rate
 	#define UART_DIV_SAMPLING16(__PCLK__, __BAUD__)  (((__PCLK__) + ((__BAUD__)/2U)) / (__BAUD__))
@@ -129,14 +139,6 @@ void USART2_IRQHandler(void) {
 			if (IS_RECEIVING) {
 				char receiveData = (char) READ_REG(USART2->RDR);
 
-//				if(receiveData == '\r') {
-//					uartFlag = 1;
-//				}
-				if(READ_BIT(isrflags, USART_ISR_CMF) != RESET) {
-					WRITE_REG(USART2->ICR, USART_ICR_CMCF);
-					uart2Flag = 1;
-				}
-
 				int bufPos = (unsigned int)(uart2_rx_buffer->head + 1) % BUFFER_SIZE;
 
 				if(bufPos != uart2_rx_buffer->tail) {
@@ -144,6 +146,14 @@ void USART2_IRQHandler(void) {
 					uart2_rx_buffer->head = bufPos;
 				} else {	// buffer overflow
 					error(__LINE__); // TODO
+				}
+
+//				if(receiveData == '\r') {
+//					uartFlag = 1;
+//				}
+				if(READ_BIT(isrflags, USART_ISR_CMF) != RESET) {
+					WRITE_REG(USART2->ICR, USART_ICR_CMCF);
+					uart2Flag = 1;
 				}
 			}
 			// transmitting
@@ -183,12 +193,12 @@ void RNG_LPUART1_IRQHandler(void) {
 
 				int bufPos = (unsigned int)(uart1_rx_buffer->head + 1) % BIG_BUFFER_SIZE;
 
-				//				if(bufPos != uart1_rx_buffer->tail) {
-									uart1_rx_buffer->buffer[uart1_rx_buffer->head] = receiveData;
-									uart1_rx_buffer->head = bufPos;
-				//				} else {	// buffer overflow
-				//					error(__LINE__); // TODO
-				//				}
+				if(bufPos != uart1_rx_buffer->tail) {
+					uart1_rx_buffer->buffer[uart1_rx_buffer->head] = receiveData;
+					uart1_rx_buffer->head = bufPos;
+				} else {	// buffer overflow
+					error(__LINE__); // TODO
+				}
 
 //				if(receiveData == '\n') {
 //					uart1Flag = 1;

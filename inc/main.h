@@ -2,8 +2,9 @@
 #define MAIN_H_
 
 #include <stm32l0xx.h>
+#include "stdbool.h"
 
-#define MCU_HAT_REF_RES (10000) /* MCU Hat reference resistor */
+#define MCU_HAT_REF_RES (22000) /* MCU Hat reference resistor */
 #define GET_HAT_CONFIG(HAT) (&(hat_list[HAT]))
 
 #define ATTR_OPTIMIZE(n)          __attribute__ ((optimize(XSTRING_(O##n))))

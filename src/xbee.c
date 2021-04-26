@@ -36,6 +36,8 @@ void xbee_setup() {
 
 	xbee_send_at(XBEE_AT_WRITE	"\r", true);	// Write changes, expect OK
 	xbee_send_at(XBEE_AT_EXITCMD"\r", true);	// Exit command mode, expect OK
+
+	delay_ms(30);
 }
 
 void xbee_send_at(char * str, bool check) {
@@ -76,6 +78,8 @@ void xbee_send() {
 
 	uint32_t frameLen = xbee_msg->prePayloadLen + xbee_msg->payloadLen;
 
+	// TODO, don't need to check buffer overload every time using buf_writeByte.  Just check initially using known size, and do a blind push to buffer
+
 	// Send packet to XBee over UART
 	buf_writeByte(uart2_tx_buffer, XBEE_CTRL_START);
 	buf_writeByte(uart2_tx_buffer, frameLen >> 8);
@@ -94,6 +98,8 @@ void xbee_send() {
 	}
 
 	buf_writeByte(uart2_tx_buffer, (0xFF - checksumSend));
+
+	delay_ms(10);
 
 	// Enable the Transmit Data Register Empty interrupt
 	SET_BIT(USART2->CR1, USART_CR1_TXEIE);

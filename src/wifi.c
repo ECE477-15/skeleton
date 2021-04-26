@@ -28,8 +28,6 @@ void check_ready_fn();
 void check_smartconn_fn();
 
 void wifi_setup() {
-	uart1_receive();
-
 	delay_ms(5000);	// wait, might try to connect/disconnect from previous session
 	wifi_send_AT("AT+RESTORE\r\n", check_ready);
 	wifi_send_AT("ATE1\r\n", check_OK); // prefer 0, can use 1 for debugging (fills buffer, more processing)
@@ -53,6 +51,13 @@ void wifi_setup() {
 	wifi_send_AT("AT+MQTTPUB=0,\"homeassistant/sensor/sensorBedroom/state\",\"12\",0,0\r\n", check_OK);
 }
 
+void wifi_send_mqtt(char * topic, char * payload) {
+	buf_writeStr_var("AT+MQTTPUB=0,\"", (Buffer *)uart1_tx_buffer);
+	buf_writeStr_var(topic, (Buffer *)uart1_tx_buffer);
+	buf_writeStr_var("\",\"", (Buffer *)uart1_tx_buffer);
+	buf_writeStr_var(payload, (Buffer *)uart1_tx_buffer);
+	wifi_send_AT("\",0,0\r\n", check_OK);
+}
 
 void wifi_send_AT(char * str, check_t check) {
 	// Clear the buffer

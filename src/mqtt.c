@@ -24,12 +24,13 @@ static const char* const discovery[] = {
 };
 
 void mqtt_discover(uint64_t addr, char hatId) {
-	if(global_state.connectedHat != wifi_gateway) {
+	if(global_state.connectedHat != wifi_gateway) {	// todo, check to see if connection to mqtt is good as well
 		error(__LINE__);
 	}
 
 	switch( (hat_t)hatId ) {
 		case temp_hum:
+			wifi_send_mqtt("homeassistant/sensor/sensorBedroom/state", "3");
 //			buf_writeStr(discovery[0], uart1_tx_buffer);
 //			buf_writeStr("temperature", uart1_tx_buffer);
 //			buf_writeStr(discovery[1], uart1_tx_buffer);
@@ -44,6 +45,7 @@ void mqtt_discover(uint64_t addr, char hatId) {
 //			buf_writeStr(discovery[6], uart1_tx_buffer);
 			break;
 		default:
+			wifi_send_mqtt("homeassistant/sensor/sensorBedroom/state", "7");
 			error(__LINE__);
 			break;
 	}

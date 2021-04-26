@@ -109,7 +109,8 @@ uint16_t hat_is_connected() {
 	// wait, in case of any capacitance/general stabalization
 	delay_ms(5);
 
-	return (READ_BIT(GPIOA->IDR, GPIO_IDR_ID4) != RESET);
+	uint16_t retVal = (READ_BIT(GPIOA->IDR, GPIO_IDR_ID4) != RESET);
+	return retVal;
 }
 
 void get_initial_state() {
@@ -130,12 +131,11 @@ void hat_init() {
 	uint32_t hat_adc = get_hat_adc();
 	global_state.connectedHat = get_hat_from_adc(hat_adc);
 
-	global_state.connectedHat = wifi_gateway; // TODO remove me!!!
-
 	// update homeassistant if this is a different hat
-	if(global_state.connectedHat != lastHat) {
+	// TODO fixme, re-enable if statement
+//	if(global_state.connectedHat != lastHat) {
 		declare_hat();
-	}
+//	}
 
 	// setup GPIO aspect of hat
 	setup_hat();
@@ -170,17 +170,19 @@ void declare_hat() {
 	// TODO MAYBE: if its a "not_connected" hat, don't update
 
 	// send current hat setup to home assistant
-	// TODO
-	tx_req_frame_t txReq = {
-			.addrH = ENDIAN_SWAP32(0x0),
-			.addrL = ENDIAN_SWAP32(0xFFFF),
-	};
-	uint8_t payload[3] = {(char)discover, 0x0, 0x0};
-	payload[1] = connHat & 0xFF;
-	payload[2] = connHat >> 8;
-	xbee_msg->payload = payload;
-	xbee_msg->payloadLen = 3;
-	xbee_send_message(&txReq);
+	// TODO (started below, verify)
+	if(connHat != wifi_gateway) {
+		tx_req_frame_t txReq = {
+				.addrH = ENDIAN_SWAP32(0x0),
+				.addrL = ENDIAN_SWAP32(0xFFFF),
+		};
+		uint8_t payload[3] = {(char)discover, 0x0, 0x0};
+		payload[1] = connHat & 0xFF;
+		payload[2] = connHat >> 8;
+		xbee_msg->payload = payload;
+		xbee_msg->payloadLen = 3;
+		xbee_send_message(&txReq);
+	}
 
 	// set declared_config in eeprom
 	EEPROM_WRITE(eeprom_config->declaredHat, connHat);
@@ -209,13 +211,12 @@ uint32_t get_hat_adc(void) {
 	// Set output to low (enable external pulldown)
 	WRITE_REG(GPIOA->BSRR, GPIO_BSRR_BR_8); // Do the DRAIN
 
-	delay_ms(25);
-
 	// setup adc clocks, etc
 	adc_setup();
 	adc_calibrate();
 
 	adc_enable();
+	// todo, combine into a scan mode reading
 	uint32_t adc_read = adc_oneshot(ADC_CHSELR_CHSEL4);
 	uint32_t VREFINT_DATA = adc_get_vref();
 	adc_disable();
@@ -264,12 +265,39 @@ void HardFault_Handler(void) {
 }
 
 void error(uint32_t source) {
+//	delay_init();
+
 	SET_BIT(RCC->IOPENR, RCC_IOPENR_GPIOBEN);	// GPIOB Clock enable
 
 	MODIFY_REG(GPIOB->MODER, GPIO_MODER_MODE4, GPIO_MODER_MODE4_0);
 	CLEAR_BIT(GPIOB->OTYPER, GPIO_OTYPER_OT_4);
 
-	WRITE_REG(GPIOB->BSRR, GPIO_BSRR_BS_4);
+	while(1) {
+		WRITE_REG(GPIOB->BSRR, GPIO_BSRR_BS_4);
+//		delay_ms(5000);
+		for(uint32_t i = 0; i < 800000; ++i);
+		WRITE_REG(GPIOB->BSRR, GPIO_BSRR_BR_4);
+//		delay_ms(500);
+		for(uint32_t i = 0; i < 80000; ++i);
 
-	while(1);
+		uint32_t sInt = source;
+		while(sInt != 0x0) {
+			if((sInt & 0x1)) {
+				WRITE_REG(GPIOB->BSRR, GPIO_BSRR_BS_4);
+//				delay_ms(1000);
+				for(uint32_t i = 0; i < 160000; ++i);
+				WRITE_REG(GPIOB->BSRR, GPIO_BSRR_BR_4);
+//				delay_ms(200);
+				for(uint32_t i = 0; i < 32000; ++i);
+			} else {
+				WRITE_REG(GPIOB->BSRR, GPIO_BSRR_BS_4);
+//				delay_ms(200);
+				for(uint32_t i = 0; i < 32000; ++i);
+				WRITE_REG(GPIOB->BSRR, GPIO_BSRR_BR_4);
+//				delay_ms(500);
+				for(uint32_t i = 0; i < 80000; ++i);
+			}
+			sInt >>= 1;
+		}
+	}
 }

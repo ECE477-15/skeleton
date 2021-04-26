@@ -11,5 +11,6 @@
 #include "stm32l0xx.h"
 
 void wifi_setup(void);
+void wifi_send_mqtt(char * topic, char * payload);
 
 #endif /* WIFI_H_ */

@@ -8,6 +8,7 @@
 #include "hats.h"
 #include "main.h"
 #include "uart.h"
+#include "xbee.h"
 
 // Setup hat for PB11 generating interrupts on LO and HI (falling and rising)
 void hat_interrupt_PB11(void) {
@@ -60,9 +61,21 @@ void send_homeassistant_boolean_PB11() {
 	uint16_t value = ((GPIOB->IDR & GPIO_IDR_ID11) != 0x0);
 
 	// adjustment for active-low?
+//	if(GET_HAT_CONFIG(global_state->connectedHat)->activeLow == true) {
+//		value = !value;
+//	}
 
 	// send homeassistant an update on a boolean sensor value
 	// TODO
+	tx_req_frame_t txReq = {
+			.addrH = ENDIAN_SWAP32(0x0),
+			.addrL = ENDIAN_SWAP32(0xFFFF),
+	};
+	uint8_t payload[3] = {(char)send_value, (value & 0xFF), 0x0};
+	xbee_msg->payload = payload;
+	xbee_msg->payloadLen = 3;
+	xbee_send_message(&txReq);
+
 }
 
 __attribute__( ( always_inline ) ) __STATIC_INLINE void EXTI11_IRQHandler() {
@@ -137,7 +150,11 @@ void hat_gpio_setup_uart() {
 	MODIFY_REG(LPUART1->CR2, (USART_CR2_ADD | USART_CR2_STOP | USART_CR2_LINEN | USART_CR2_CLKEN), (((uint8_t)'\n') << USART_CR2_ADD_Pos));
 
 	// Configure CR3
-	MODIFY_REG(LPUART1->CR3, (USART_CR3_RTSE | USART_CR3_CTSE | USART_CR3_ONEBIT | USART_CR3_SCEN | USART_CR3_HDSEL | USART_CR3_IREN), (USART_CR3_RTSE | USART_CR3_CTSE));
+	MODIFY_REG(LPUART1->CR3,
+			(USART_CR3_RTSE | USART_CR3_CTSE | USART_CR3_ONEBIT | USART_CR3_SCEN | USART_CR3_HDSEL | USART_CR3_IREN),
+					(USART_CR3_RTSE | USART_CR3_CTSE)
+//					(0x0)	// hardware flow control?
+			);
 
 	// Set Baud-rate
 	#define UART_DIV_LPUART(__PCLK__, __BAUD__)      (((((uint64_t)(__PCLK__)*256U)) + ((__BAUD__)/2U)) / (__BAUD__))
