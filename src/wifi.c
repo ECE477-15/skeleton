@@ -44,7 +44,7 @@ void wifi_setup() {
 	/* TESTING */
 
 	delay_ms(5000);	// wait, might try to connect/disconnect from previous session
-	wifi_send_AT("AT+CWSTOPSMART\r\n", check_none);
+	wifi_send_AT("AT\r\n", check_none);
 	delay_ms(1000);
 	wifi_send_AT("AT+RESTORE\r\n", check_ready);
 	delay_ms(250);
@@ -74,6 +74,42 @@ void wifi_send_mqtt(char * topic, char * payload) {
 	buf_writeStr_var(topic, (Buffer *)uart1_tx_buffer);
 	buf_writeStr_var("\",\"", (Buffer *)uart1_tx_buffer);
 	buf_writeStr_var(payload, (Buffer *)uart1_tx_buffer);
+	wifi_send_AT("\",0,0\r\n", check_OK);
+}
+
+void wifi_send_mqtt_disco(char * friendlyName, char * identifier, char *type, char *class, char *more_opts) {
+	char * topic;
+	uint32_t length;
+
+	buf_writeStr_var("AT+MQTTPUBRAW=0,\"", (Buffer *)uart1_tx_buffer);
+	buf_writeStr_var(topic, (Buffer *)uart1_tx_buffer);
+	buf_writeStr_var("\",", (Buffer *)uart1_tx_buffer);
+	buf_writeStr_var(length, (Buffer *)uart1_tx_buffer);
+
+	buf_writeStr_var("AT+MQTTPUB=0,\"", (Buffer *)uart1_tx_buffer);
+	// Topic Start
+	buf_writeStr_var("homeassistant/", (Buffer *)uart1_tx_buffer);
+	buf_writeStr_var(type, (Buffer *)uart1_tx_buffer);
+	buf_writeStr_var("/", (Buffer *)uart1_tx_buffer);
+	buf_writeStr_var(identifier, (Buffer *)uart1_tx_buffer);
+	buf_writeStr_var("/config", (Buffer *)uart1_tx_buffer);
+	// Topic End
+	buf_writeStr_var("\",\"", (Buffer *)uart1_tx_buffer);
+	// Payload Start
+	buf_writeStr_var("{'name':'", (Buffer *)uart1_tx_buffer);
+	buf_writeStr_var(friendlyName, (Buffer *)uart1_tx_buffer);
+	buf_writeStr_var("','uniq_id':'", (Buffer *)uart1_tx_buffer);
+	buf_writeStr_var(identifier, (Buffer *)uart1_tx_buffer);
+	buf_writeStr_var("','dev_cla':'", (Buffer *)uart1_tx_buffer);
+	buf_writeStr_var(class, (Buffer *)uart1_tx_buffer);
+	buf_writeStr_var("','stat_t':'homeassistant/", (Buffer *)uart1_tx_buffer);
+	buf_writeStr_var(type, (Buffer *)uart1_tx_buffer);
+	buf_writeStr_var("/", (Buffer *)uart1_tx_buffer);
+	buf_writeStr_var(identifier, (Buffer *)uart1_tx_buffer);
+	buf_writeStr_var("/state'", (Buffer *)uart1_tx_buffer);
+	buf_writeStr_var(more_opts, (Buffer *)uart1_tx_buffer);
+	buf_writeStr_var("}", (Buffer *)uart1_tx_buffer);
+	// Payload End
 	wifi_send_AT("\",0,0\r\n", check_OK);
 }
 

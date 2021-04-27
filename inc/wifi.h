@@ -12,5 +12,6 @@
 
 void wifi_setup(void);
 void wifi_send_mqtt(char * topic, char * payload);
+void wifi_send_mqtt_disco(char * friendlyName, char * identifier, char *type, char *class, char *more_opts);
 
 #endif /* WIFI_H_ */
