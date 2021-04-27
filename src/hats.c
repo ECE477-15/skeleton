@@ -109,16 +109,40 @@ void blank_setup() {
 
 void i2c_setup() {
 	I2C_Init();
+	uint8_t data[1] = {0xFF};
+    I2C_Mem_Tx(0x32, 0x3D, 1, data, 1); // reset chip
+
+    data[0] = 0x40;
+    I2C_Mem_Tx(0x32, 0x00, 1, data, 1); // chip enable
+
+    data[0] = 0x53;
+    I2C_Mem_Tx(0x32, 0x36, 1, data, 1); // chip clock enable
+
+    data[0] = 0xFF;
+    I2C_Mem_Tx(0x32, 0x16, 1, data, 1); // turn on LED
+
+//    data[0] = 0b00000100;
+//    I2C_Mem_Tx(0x32, 0x3E, 1, data, 1); // take temperature sample
+//
+//    delay_ms(4000);
+//
+//    I2C_Mem_Rx(0x32, 0x3F, 1, data, 1); // read temperature
+//
+//    delay_ms(4000);
+//
+//	data[0] = 0xFF;
+//	I2C_Mem_Tx(0x32, 0x3D, 1, data, 1); // reset chip
+
 }
 
 void hdc_i2c_setup() {
 	uint16_t hum = 0;
 	I2C_Init();
 	I2C_hdc2010_enable();
-//	hum = I2C_getHDCTemp();
+//	hum = I2C_getHDCHumidity();
 //	char sen [20];
 //	char snum [4];
-//	strcpy(sen, "\n Temp: ");
+//	strcpy(sen, "\n Humidity: ");
 //	itoa(hum, snum, 10);
 //	strcat(sen, snum);
 //	strcat(sen, "\r");
