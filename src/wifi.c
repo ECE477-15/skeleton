@@ -12,6 +12,7 @@
 #include "delay.h"
 #include "stdbool.h"
 #include "String.h"
+#include "hats.h"
 
 typedef enum {
 	check_none,
@@ -26,10 +27,27 @@ void wifi_send_AT(char * str, check_t check);
 void check_ok_fn();
 void check_ready_fn();
 void check_smartconn_fn();
+void check_string_fn(char * match);
+void check_startup();
 
 void wifi_setup() {
+	/* TESTING */
+//	hat_uart_9600();
+//	check_startup();
+//	delay_ms(8000);
+//	wifi_send_AT("AT\r\n", check_none);
+//	delay_ms(1000);
+//	wifi_send_AT("AT+UART_DEF=9600,8,1,0,3\r\n", check_none);
+//	delay_ms(5000);
+
+//	hat_uart_9600();
+	/* TESTING */
+
 	delay_ms(5000);	// wait, might try to connect/disconnect from previous session
-	wifi_send_AT("AT+RESTORE\r\n", check_ready);
+	wifi_send_AT("AT+CWSTOPSMART\r\n", check_none);
+	delay_ms(1000);
+	wifi_send_AT("AT+RESTORE\r\n", check_OK);
+	delay_ms(50);
 	wifi_send_AT("ATE1\r\n", check_OK); // prefer 0, can use 1 for debugging (fills buffer, more processing)
 	wifi_send_AT("AT+UART_DEF=115200,8,1,0,3\r\n", check_OK);
 	wifi_send_AT("AT\r\n", check_OK);
@@ -77,13 +95,16 @@ void wifi_send_AT(char * str, check_t check) {
 
 	switch(check) {
 		case check_OK:
-			check_ok_fn();
+			check_string_fn("\r\nOK\r\n");
+//			check_ok_fn();
 			break;
 		case check_ready:
-			check_ready_fn();
+			check_string_fn("ready");
+//			check_ready_fn();
 			break;
 		case check_smartconn:
-			check_smartconn_fn();
+			check_string_fn("smartconfig connected wifi\r\n");
+//			check_smartconn_fn();
 			break;
 		default:
 			break;
@@ -94,6 +115,8 @@ void wifi_send_AT(char * str, check_t check) {
 }
 
 void check_ok_fn() {
+	check_string_fn("OK\r\n");
+	return;
 	bool alive = true;
 	uint8_t prevHead = uart1_rx_buffer->head;
 	uint8_t prevLineLen = 0;
@@ -106,6 +129,10 @@ void check_ok_fn() {
 		uart1Flag--;
 
 		if(lineLen + prevLineLen == 6) {	// cheap - check for match of message length "\r\nOK\r\n"
+//			uint8_t chk = BUF_GET_AT_BIG(uart1_rx_buffer,head-4) == 'O';
+//			chk = BUF_GET_AT_BIG(uart1_rx_buffer,head-3) == 'K';
+//			chk = BUF_GET_AT_BIG(uart1_rx_buffer,head-2) == '\r';
+//			chk = BUF_GET_AT_BIG(uart1_rx_buffer,head-1) == '\n';
 			if(BUF_GET_AT_BIG(uart1_rx_buffer,head-4) == 'O' && BUF_GET_AT_BIG(uart1_rx_buffer,head-3) == 'K' && BUF_GET_AT_BIG(uart1_rx_buffer,head-2) == '\r' && BUF_GET_AT_BIG(uart1_rx_buffer,head-1) == '\n') {
 				alive = false;	// received OK\r\n
 			}
@@ -171,4 +198,82 @@ void check_smartconn_fn() {
 
 		prevHead = head;
 	}
+}
+
+void check_string_fn(char * match) {
+	char *lastMatch = &(match[strlen(match)-1]);
+
+	uint16_t startPos = uart1_rx_buffer->head;
+	uint16_t currPos = startPos;
+
+	char *toMatch = match;
+
+	while(1) {
+		while(currPos == uart1_rx_buffer->head); // wait for a new byte
+
+		if(BUF_GET_AT_BIG(uart1_rx_buffer, currPos) == *toMatch) { // character matched!
+			 if(toMatch == lastMatch) {	// see if full string match
+				 return;
+			 }
+			 toMatch++;	// match the next character
+			 currPos++;	// increment position in buffer
+		} else {
+			toMatch = match;	// reset matching character
+			startPos++;			// start from the next character
+			currPos = startPos;
+		}
+	}
+}
+
+void check_string_fn_OLD(char * match) {
+	bool alive = true;
+	uint8_t prevHead = uart1_rx_buffer->head;
+
+	uint8_t connArr[12]; // debug
+	uint8_t connI = 0; // debug
+
+	uint8_t strLen = strlen(match);
+
+	while(alive) {
+		while(uart1Flag == 0);
+		uint8_t head = uart1_rx_buffer->head;
+		uint8_t lineLen = head - prevHead;
+		uart1Flag--;
+
+		connArr[connI++] = lineLen; // debug
+
+		if(lineLen == strLen) {
+			unsigned char *letter = &(uart1_rx_buffer->buffer[head - strLen - 1]);
+			unsigned char *last = &(uart1_rx_buffer->buffer[head]);
+			char *matchI = match;
+			for(;letter < last; letter++, matchI++) {
+				if(*letter != *matchI) {
+					break;
+				}
+			}
+			if(letter == last) {
+				alive = false;
+			}
+		}
+
+		prevHead = head;
+	}
+}
+
+void check_startup() {
+	// Clear the buffer
+	buf_clear((Buffer *)uart1_rx_buffer);
+
+	// Make sure it's at 0, since ISR increments it
+	uart1Flag = 0;
+
+	// Set flag when received '\n'
+	uart1_update_match('\n');
+
+	// Make sure receiving is enabled
+	uart1_receive();
+
+	check_ready_fn();
+
+	buf_clear((Buffer *)uart1_rx_buffer);
 }

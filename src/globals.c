@@ -42,7 +42,7 @@ hat_config_t hat_list[HAT_LIST_LEN] = {
 	[push_button].hat_initial_setup = blank_setup,
 
 	[PIR_motion].friendly_name = "Push Button",
-	[PIR_motion].hat_resistance = 3,
+	[PIR_motion].hat_resistance = 15000,
 	[PIR_motion].gpio_setup = hat_interrupt_PB11,
 	[PIR_motion].type = external_interrupt,
 	[PIR_motion].handler = send_homeassistant_boolean_PB11,
@@ -56,8 +56,8 @@ hat_config_t hat_list[HAT_LIST_LEN] = {
 	[force_resistor].hat_initial_setup = blank_setup,
 
 	[wifi_gateway].friendly_name = "WiFi Gateway",
-	[wifi_gateway].hat_resistance = 9000,
-	[wifi_gateway].gpio_setup = hat_gpio_setup_uart,
+	[wifi_gateway].hat_resistance = 10000,
+	[wifi_gateway].gpio_setup = hat_uart_115200,
 	[wifi_gateway].type = uart,
 	[wifi_gateway].handler = 0,
 	[wifi_gateway].hat_initial_setup = wifi_setup,

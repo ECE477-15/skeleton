@@ -16,6 +16,8 @@ int main(void) {
 	delay_init();
 	setup();
 
+	delay_ms(1000);
+
 	uint16_t xbee_status = 0;
 	uint32_t xbee_length = 0;
 

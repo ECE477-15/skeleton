@@ -104,9 +104,9 @@ void xbee_send() {
 	// Enable the Transmit Data Register Empty interrupt
 	SET_BIT(USART2->CR1, USART_CR1_TXEIE);
 
-	if(xbee_msg->expectResponse == false) {
-		return;
-	}
+//	if(xbee_msg->expectResponse == false) {
+//		return;
+//	}
 
 	// wait for start of frame (START_BYTE)
 	while(uart2Flag == 0);
@@ -179,7 +179,8 @@ void xbee_send_message(tx_req_frame_t *txReq) {
 	xbee_msg->prePayload = (uint8_t *)txReq;
 	xbee_msg->prePayloadLen = sizeof(tx_req_frame_t);
 	xbee_msg->respFrameType = XBEE_FRAME_TX_STAT;
-	xbee_msg->expectResponse = (txReq->addrH == 0x0 && txReq->addrL == ENDIAN_SWAP32(0xFFFF)) ? false : true;
+//	xbee_msg->expectResponse = (txReq->addrH == 0x0 && txReq->addrL == ENDIAN_SWAP32(0xFFFF)) ? false : true;
+	xbee_msg->expectResponse = true;
 
 	xbee_send();
 }

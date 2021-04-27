@@ -26,6 +26,8 @@ void uart1_transmit(char * str);
 void uart1_receive(void);
 void uart1_update_match(uint8_t match);
 
+void lpuart_init(uint32_t baudrate);
+
 Big_Buffer *uart1_tx_buffer;
 Big_Buffer *uart1_rx_buffer;
 Buffer *uart2_tx_buffer;

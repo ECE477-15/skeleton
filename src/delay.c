@@ -7,9 +7,6 @@
  */
 #include "delay.h"
 
-// Delay counter
-static volatile uint32_t delay_count;
-
 // SysTick interrupt handler
 void SysTick_Handler(void) {
 	delay_count++;
@@ -22,6 +19,20 @@ void delay_ms(uint32_t ms) {
 	// Wait for a specified number of milliseconds
 	delay_count = 0;
 	while (delay_count < ms);
+
+	// Disable the SysTick timer
+	SysTick->CTRL &= ~SysTick_CTRL_ENABLE_Msk;
+}
+
+void delay_lapse_start() {
+	delay_count = 0;
+
+	// Enable the SysTick timer
+	SysTick->CTRL |= SysTick_CTRL_ENABLE_Msk;
+}
+
+void delay_lapse_end() {
+	delay_count = 0;
 
 	// Disable the SysTick timer
 	SysTick->CTRL &= ~SysTick_CTRL_ENABLE_Msk;
