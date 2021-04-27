@@ -41,14 +41,14 @@ hat_config_t hat_list[HAT_LIST_LEN] = {
 	[push_button].handler = send_homeassistant_boolean_PB11,
 	[push_button].hat_initial_setup = blank_setup,
 
-	[PIR_motion].friendly_name = "Push Button",
-	[PIR_motion].hat_resistance = 15000,
+	[PIR_motion].friendly_name = "PIR Motion",
+	[PIR_motion].hat_resistance = 47000,
 	[PIR_motion].gpio_setup = hat_interrupt_PB11,
 	[PIR_motion].type = external_interrupt,
 	[PIR_motion].handler = send_homeassistant_boolean_PB11,
 	[PIR_motion].hat_initial_setup = blank_setup,
 
-	[force_resistor].friendly_name = "Push Button",
+	[force_resistor].friendly_name = "Force Sensor",
 	[force_resistor].hat_resistance = 4,
 	[force_resistor].gpio_setup = hat_interrupt_PB11,
 	[force_resistor].type = comparator,

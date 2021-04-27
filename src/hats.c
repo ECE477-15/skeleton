@@ -21,9 +21,9 @@ void hat_interrupt_PB11(void) {
 	MODIFY_REG(SYSCFG->EXTICR[2], SYSCFG_EXTICR3_EXTI11, SYSCFG_EXTICR3_EXTI11_PB);
 
 	SET_BIT(EXTI->RTSR, EXTI_RTSR_RT11);	// rising edge
-	SET_BIT(EXTI->FTSR, EXTI_FTSR_FT11); 	// falling edge
+//	SET_BIT(EXTI->FTSR, EXTI_FTSR_FT11); 	// falling edge
 	WRITE_REG(EXTI->PR, EXTI_PR_PIF11);		// Clear pending bit (if any)
-	SET_BIT(EXTI->EMR, EXTI_EMR_EM11);		// Enable Event
+//	SET_BIT(EXTI->EMR, EXTI_EMR_EM11);		// Enable Event
 	SET_BIT(EXTI->IMR, EXTI_IMR_IM11);		// Enable interrupt
 
 	NVIC_SetPriority(EXTI4_15_IRQn,0);
@@ -39,7 +39,7 @@ void hat_detect_interrupt() {
 	// make sure pull-down is not activated
 	SET_BIT(GPIOA->MODER, GPIO_MODER_MODE8); // analog mode
 
-	// set EXTI 5 to trigger from Port A
+	// set EXTI 4 to trigger from Port A
 	MODIFY_REG(SYSCFG->EXTICR[1], SYSCFG_EXTICR2_EXTI4, SYSCFG_EXTICR2_EXTI4_PA);
 
 	if(global_state.hatDetectTrig == hat_connect) {
