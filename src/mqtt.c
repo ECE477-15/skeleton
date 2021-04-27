@@ -44,8 +44,11 @@ void mqtt_discover(uint64_t addr, char hatId) {
 //			buf_writeStr("{{value}}", uart1_tx_buffer);
 //			buf_writeStr(discovery[6], uart1_tx_buffer);
 			break;
+		case PIR_motion:
+			wifi_send_mqtt_disco("FRIENDLY", "UNIQUE_ID", "binary_sensor", "motion", ",'off_dly':30");
+			break;
 		default:
-			wifi_send_mqtt("homeassistant/sensor/sensorBedroom/state", "7");
+			wifi_send_mqtt("homeassistant/sensor/pirmotion/state", "7");
 			error(__LINE__);
 			break;
 	}
@@ -57,4 +60,5 @@ void mqtt_value(uint64_t addr, char val1, char val2) {
 	}
 
 	// TODO
+	wifi_send_mqtt("homeassistant/binary_sensor/UNIQUE_ID/state", "ON");
 }

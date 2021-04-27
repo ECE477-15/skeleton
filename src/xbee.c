@@ -202,8 +202,8 @@ void xbee_rx_complete(uint16_t len) {
 		error(__LINE__);
 	}
 
-	if((msg->rx_opts & 0x1) != 0x1) {
-		error(__LINE__);	// packet not ack'ed
+	if((msg->rx_opts & 0x1) != 0x1 && (msg->rx_opts & 0x2) != 0x2) {
+		error(__LINE__);	// packet not a broadcast and was not ack'ed
 	}
 
 	char *payload = (char *)&(msg->payload_start);
