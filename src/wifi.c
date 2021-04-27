@@ -46,8 +46,8 @@ void wifi_setup() {
 	delay_ms(5000);	// wait, might try to connect/disconnect from previous session
 	wifi_send_AT("AT+CWSTOPSMART\r\n", check_none);
 	delay_ms(1000);
-	wifi_send_AT("AT+RESTORE\r\n", check_OK);
-	delay_ms(50);
+	wifi_send_AT("AT+RESTORE\r\n", check_ready);
+	delay_ms(250);
 	wifi_send_AT("ATE1\r\n", check_OK); // prefer 0, can use 1 for debugging (fills buffer, more processing)
 	wifi_send_AT("AT+UART_DEF=115200,8,1,0,3\r\n", check_OK);
 	wifi_send_AT("AT\r\n", check_OK);
@@ -211,7 +211,7 @@ void check_string_fn(char * match) {
 	while(1) {
 		while(currPos == uart1_rx_buffer->head); // wait for a new byte
 
-		if(BUF_GET_AT_BIG(uart1_rx_buffer, currPos) == *toMatch) { // character matched!
+		if(BUF_GET_AT_BIG(uart1_rx_buffer, currPos) == (*toMatch)) { // character matched!
 			 if(toMatch == lastMatch) {	// see if full string match
 				 return;
 			 }
