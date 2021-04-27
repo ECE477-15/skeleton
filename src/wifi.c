@@ -66,7 +66,11 @@ void wifi_setup() {
 	wifi_send_AT("AT+MQTTUSERCFG=0,1,\"ESP32\",\"MuT\",\"MuTpass\",0,0,\"\"\r\n", check_OK);
 	wifi_send_AT("AT+MQTTCONNCFG=0,120,0,\"\",\"\",0,0\r\n", check_OK);
 	wifi_send_AT("AT+MQTTCONN=0,\"192.168.1.137\",1883,1\r\n", check_OK);
-	wifi_send_AT("AT+MQTTPUB=0,\"homeassistant/sensor/sensorBedroom/state\",\"12\",0,0\r\n", check_OK);
+//	wifi_send_AT("AT+MQTTPUB=0,\"homeassistant/binary_sensor/bedroom/config\",\"12\",0,0\r\n", check_OK);
+//	char * payload = "{\"name\":\"My Motion\",\"dev_cla\":\"motion\",\"stat_t\":\"homeassistant/binary_sensor/bedroom/state\",\"off_dly\":30}";
+//	wifi_send_AT("AT+MQTTPUB=0,\"homeassistant/binary_sensor/bedroom/state\", \"{\"name\":\"Eto Motion\",\"dev_cla\":\"motion\",\"stat_t\":\"homeassistant/binary_sensor/bedroom/state\",\"off_dly\":30}\",0,0\r\n", check_OK);
+//	wifi_send_AT("AT+MQTTPUB=0,\"homeassistant/binary_sensor/bedroom/config\", {\"name\":\"Eto_Motion\",\"dev_cla\":\"motion\",\"stat_t\":\"homeassistant/binary_sensor/bedroom/state\",\"off_dly\":30},0,0\r\n", check_OK);
+	wifi_send_mqtt_disco("motionSensor", "sensor69", "binary_sensor", "motion", ",\"off_dly\":30");
 }
 
 void wifi_send_mqtt(char * topic, char * payload) {
@@ -81,10 +85,14 @@ void wifi_send_mqtt_disco(char * friendlyName, char * identifier, char *type, ch
 	char * topic;
 	uint32_t length;
 
-	buf_writeStr_var("AT+MQTTPUBRAW=0,\"", (Buffer *)uart1_tx_buffer);
-	buf_writeStr_var(topic, (Buffer *)uart1_tx_buffer);
-	buf_writeStr_var("\",", (Buffer *)uart1_tx_buffer);
-	buf_writeStr_var(length, (Buffer *)uart1_tx_buffer);
+//	buf_writeStr_var("AT+MQTTPUBRAW=0,\"", (Buffer *)uart1_tx_buffer); // publish in binary
+//	buf_writeStr_var("homeassistant/", (Buffer *)uart1_tx_buffer); // begin config topic
+//	buf_writeStr_var(type, (Buffer *)uart1_tx_buffer);
+//	buf_writeStr_var("/", (Buffer *)uart1_tx_buffer);
+//	buf_writeStr_var(identifier, (Buffer *)uart1_tx_buffer);
+//	buf_writeStr_var("/config", (Buffer *)uart1_tx_buffer); // end config topic
+//	buf_writeStr_var("\",", (Buffer *)uart1_tx_buffer);
+//	buf_writeStr_var(length, (Buffer *)uart1_tx_buffer);
 
 	buf_writeStr_var("AT+MQTTPUB=0,\"", (Buffer *)uart1_tx_buffer);
 	// Topic Start
@@ -94,19 +102,19 @@ void wifi_send_mqtt_disco(char * friendlyName, char * identifier, char *type, ch
 	buf_writeStr_var(identifier, (Buffer *)uart1_tx_buffer);
 	buf_writeStr_var("/config", (Buffer *)uart1_tx_buffer);
 	// Topic End
-	buf_writeStr_var("\",\"", (Buffer *)uart1_tx_buffer);
+	buf_writeStr_var("\",\"", (Buffer *)uart1_tx_buffer); //
 	// Payload Start
-	buf_writeStr_var("{'name':'", (Buffer *)uart1_tx_buffer);
+	buf_writeStr_var("{\"name\":\"", (Buffer *)uart1_tx_buffer);
 	buf_writeStr_var(friendlyName, (Buffer *)uart1_tx_buffer);
-	buf_writeStr_var("','uniq_id':'", (Buffer *)uart1_tx_buffer);
+	buf_writeStr_var("\",\"uniq_id\":\"", (Buffer *)uart1_tx_buffer);
 	buf_writeStr_var(identifier, (Buffer *)uart1_tx_buffer);
-	buf_writeStr_var("','dev_cla':'", (Buffer *)uart1_tx_buffer);
+	buf_writeStr_var("\",\"dev_cla\":\"", (Buffer *)uart1_tx_buffer);
 	buf_writeStr_var(class, (Buffer *)uart1_tx_buffer);
-	buf_writeStr_var("','stat_t':'homeassistant/", (Buffer *)uart1_tx_buffer);
+	buf_writeStr_var("\",\"stat_t\":\"homeassistant/", (Buffer *)uart1_tx_buffer);
 	buf_writeStr_var(type, (Buffer *)uart1_tx_buffer);
 	buf_writeStr_var("/", (Buffer *)uart1_tx_buffer);
 	buf_writeStr_var(identifier, (Buffer *)uart1_tx_buffer);
-	buf_writeStr_var("/state'", (Buffer *)uart1_tx_buffer);
+	buf_writeStr_var("/state\"", (Buffer *)uart1_tx_buffer);
 	buf_writeStr_var(more_opts, (Buffer *)uart1_tx_buffer);
 	buf_writeStr_var("}", (Buffer *)uart1_tx_buffer);
 	// Payload End

@@ -13,7 +13,7 @@ static const char* const discovery[] = {
 		// temperature
 		"','name':'",
 		// Temperature
-		"','stat_t':'homeassistant/sensor/",	// 'state_topic'
+		"','stat_t':'homeassistant/binary_sensor/",	// 'state_topic'
 		// bedroomSensor
 		"/state',",
 		"'unit_of_meas':'°F',"					// 'unit_of_measurement'
@@ -30,7 +30,7 @@ void mqtt_discover(uint64_t addr, char hatId) {
 
 	switch( (hat_t)hatId ) {
 		case temp_hum:
-			wifi_send_mqtt("homeassistant/sensor/sensorBedroom/state", "3");
+			wifi_send_mqtt("homeassistant/binary_sensor/sensorBedroom/state", "3");
 //			buf_writeStr(discovery[0], uart1_tx_buffer);
 //			buf_writeStr("temperature", uart1_tx_buffer);
 //			buf_writeStr(discovery[1], uart1_tx_buffer);
@@ -45,10 +45,10 @@ void mqtt_discover(uint64_t addr, char hatId) {
 //			buf_writeStr(discovery[6], uart1_tx_buffer);
 			break;
 		case PIR_motion:
-			wifi_send_mqtt_disco("FRIENDLY", "UNIQUE_ID", "binary_sensor", "motion", ",'off_dly':30");
+			wifi_send_mqtt_disco("FRIENDLY", "bedroom", "binary_sensor", "motion", ",'off_dly':30");
 			break;
 		default:
-			wifi_send_mqtt("homeassistant/sensor/pirmotion/state", "7");
+			wifi_send_mqtt("homeassistant/binary_sensor/pirmotion/state", "7");
 			error(__LINE__);
 			break;
 	}

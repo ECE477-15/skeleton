@@ -14,15 +14,15 @@ hat_config_t hat_list[HAT_LIST_LEN] = {
 	[not_connected].hat_initial_setup = blank_setup,
 
 	[temp_hum].friendly_name = "Temperature & Humidity Sensor",
-	[temp_hum].hat_resistance = 1,
-	[temp_hum].gpio_setup = blank_setup,		// i2c gpio init
+	[temp_hum].hat_resistance = 220000,
+	[temp_hum].gpio_setup = hdc_i2c_setup,		// i2c gpio init
 	[temp_hum].type = i2c,
 	[temp_hum].handler = 0,
 	[temp_hum].hat_initial_setup = blank_setup,
 
 	[led_driver].friendly_name = "LED Driver",
-	[led_driver].hat_resistance = 2,
-	[led_driver].gpio_setup = blank_setup,	// i2c gpio init
+	[led_driver].hat_resistance = 6800,
+	[led_driver].gpio_setup = i2c_setup,	// i2c gpio init
 	[led_driver].type = i2c,
 	[led_driver].handler = 0,
 	[led_driver].hat_initial_setup = blank_setup,

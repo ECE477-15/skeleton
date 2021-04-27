@@ -3,18 +3,6 @@
 #include "i2c.h"
 
 
-// function declerations
-void I2C_Init();
-void I2C_Mem_Tx(uint16_t device_addr, uint16_t reg_addr, uint16_t reg_addr_size, uint8_t *data, uint16_t data_size);
-void I2C_Mem_Rx(uint16_t device_addr, uint16_t reg_addr, uint16_t reg_addr_size, uint8_t *data, uint16_t data_size);
-void hdc2010_enable();
-uint16_t BB_getSOC(void);
-uint16_t BB_getVolt(void);
-uint16_t BB_getSOH(void);
-uint16_t BB_getRemCap(void);
-uint16_t getHDCTemp(void);
-uint16_t getHDCHumidity(void);
-
 // variable declerations
 
 uint16_t Volt;
@@ -136,14 +124,14 @@ void I2C_Init() {
 
 }
 
-uint16_t BB_getSOC(void) {
+uint16_t I2C_BB_getSOC(void) {
 	uint8_t data[2];
 	I2C_Mem_Rx(BQ72441_I2C_ADDRESS, BQ27441_COMMAND_SOC, 1, data, 2);
 	uint16_t Soc = (data[1]<<8) | data[0];
 	return Soc;
 }
 
-uint16_t BB_getVolt(void){
+uint16_t I2C_BB_getVolt(void){
 	uint8_t data[2];
 	I2C_Mem_Rx(BQ72441_I2C_ADDRESS, BQ27441_COMMAND_VOLTAGE, 1, data, 2);
 	uint16_t Volt = (data[1]<<8) | data[0];
@@ -151,7 +139,7 @@ uint16_t BB_getVolt(void){
 
 }
 
-uint16_t BB_getSOH(void){
+uint16_t I2C_BB_getSOH(void){
 	uint8_t data[2];
 	I2C_Mem_Rx(BQ72441_I2C_ADDRESS, BQ27441_COMMAND_SOH, 1, data, 2);
 	Soh = (data[1]<<8) | data[0];
@@ -159,14 +147,14 @@ uint16_t BB_getSOH(void){
 	return sohPercent;
 }
 
-uint16_t BB_getRemCap(void){
+uint16_t I2C_BB_getRemCap(void){
 	uint8_t data[2];
 	I2C_Mem_Rx(BQ72441_I2C_ADDRESS, BQ27441_COMMAND_REM_CAPACITY, 1, data, 2);
 	uint16_t Rcap = (data[1]<<8) | data[0];
 	return Rcap;
 }
 
-uint16_t getHDCTemp(void){
+uint16_t I2C_getHDCTemp(void){
 	uint8_t data[2];
 	uint8_t command[2] =  {0x01,0x00};
 	I2C_Mem_Tx(HTAddr, MEASUREMENT_CONFIG, 1, command, 1);
@@ -177,7 +165,7 @@ uint16_t getHDCTemp(void){
 	return temperature;
 }
 
-uint16_t getHDCHumidity(void){
+uint16_t I2C_getHDCHumidity(void){
 	uint8_t data[2];
 	uint8_t command[3] = {0x01, 0x02 ,0x03};
 	I2C_Mem_Tx(HTAddr, MEASUREMENT_CONFIG, 1, command, 1);
@@ -188,7 +176,7 @@ uint16_t getHDCHumidity(void){
 
 }
 
-void hdc2010_enable()
+void I2C_hdc2010_enable()
 {
 	// the startup sequence for single acquisition
     uint8_t value = 0;

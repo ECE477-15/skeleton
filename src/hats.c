@@ -9,6 +9,8 @@
 #include "main.h"
 #include "uart.h"
 #include "xbee.h"
+#include "i2c.h"
+#include "String.h"
 
 // Setup hat for PB11 generating interrupts on LO and HI (falling and rising)
 void hat_interrupt_PB11(void) {
@@ -103,6 +105,24 @@ void EXTI4_15_IRQHandler() {
 
 void blank_setup() {
 
+}
+
+void i2c_setup() {
+	I2C_Init();
+}
+
+void hdc_i2c_setup() {
+	uint16_t hum = 0;
+	I2C_Init();
+	I2C_hdc2010_enable();
+//	hum = I2C_getHDCTemp();
+//	char sen [20];
+//	char snum [4];
+//	strcpy(sen, "\n Temp: ");
+//	itoa(hum, snum, 10);
+//	strcat(sen, snum);
+//	strcat(sen, "\r");
+//	xbee_send_at(sen, true);
 }
 
 void hat_uart_115200() {

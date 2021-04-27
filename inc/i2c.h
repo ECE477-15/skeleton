@@ -178,3 +178,17 @@
 #define BQ27441_OPCONFIG_RMFCC    (1<<4)
 #define BQ27441_OPCONFIG_BATLOWEN (1<<2)
 #define BQ27441_OPCONFIG_TEMPS    (1<<0)
+
+
+
+// function declerations
+void I2C_Init();
+void I2C_Mem_Tx(uint16_t device_addr, uint16_t reg_addr, uint16_t reg_addr_size, uint8_t *data, uint16_t data_size);
+void I2C_Mem_Rx(uint16_t device_addr, uint16_t reg_addr, uint16_t reg_addr_size, uint8_t *data, uint16_t data_size);
+void I2C_hdc2010_enable();
+uint16_t I2C_BB_getSOC(void);
+uint16_t I2C_BB_getVolt(void);
+uint16_t I2C_BB_getSOH(void);
+uint16_t I2C_BB_getRemCap(void);
+uint16_t I2C_getHDCTemp(void);
+uint16_t I2C_getHDCHumidity(void);
