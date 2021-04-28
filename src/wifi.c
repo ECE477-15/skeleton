@@ -13,6 +13,7 @@
 #include "stdbool.h"
 #include "String.h"
 #include "hats.h"
+#include "stdio.h"
 
 typedef enum {
 	check_none,
@@ -66,7 +67,10 @@ void wifi_setup() {
 	wifi_send_AT("AT+MQTTUSERCFG=0,1,\"ESP32\",\"MuT\",\"MuTpass\",0,0,\"\"\r\n", check_OK);
 	wifi_send_AT("AT+MQTTCONNCFG=0,120,0,\"\",\"\",0,0\r\n", check_OK);
 	wifi_send_AT("AT+MQTTCONN=0,\"192.168.1.137\",1883,1\r\n", check_OK);
-	wifi_send_AT("AT+MQTTPUB=0,\"homeassistant/sensor/sensorBedroom/state\",\"12\",0,0\r\n", check_OK);
+//	wifi_send_AT("AT+MQTTPUB=0,\"homeassistant/sensor/sensorBedroom/state\",\"12\",0,0\r\n", check_OK);
+
+	// TODO remove me
+	wifi_send_mqtt_disco(PIR_motion, "12345678");
 }
 
 void wifi_send_mqtt(char * topic, char * payload) {
@@ -77,40 +81,71 @@ void wifi_send_mqtt(char * topic, char * payload) {
 	wifi_send_AT("\",0,0\r\n", check_OK);
 }
 
-void wifi_send_mqtt_disco(char * friendlyName, char * identifier, char *type, char *class, char *more_opts) {
-	char * topic;
-	uint32_t length;
+void wifi_send_mqtt_disco(hat_t discoHat, char *uniqueID) {
+	hat_config_t discHat = hat_list[discoHat];
 
-	buf_writeStr_var("AT+MQTTPUBRAW=0,\"", (Buffer *)uart1_tx_buffer);
-	buf_writeStr_var(topic, (Buffer *)uart1_tx_buffer);
-	buf_writeStr_var("\",", (Buffer *)uart1_tx_buffer);
-	buf_writeStr_var(length, (Buffer *)uart1_tx_buffer);
+	uint32_t length = 2 /* {} */
+					+ 10 /* "name":"{}", */ 	+ strlen(discHat.friendly_name)
+					+ 13 /* "dev_cla":"{}", */ 	+ strlen(GET_DEV_CLASS(discHat))
+					+ 12 /* "uniq_id":"{}" */ 	+ 8; //8=uniqueID
+	if(discHat.state_topic == true) {
+		length += 34 /* ",stat_t":"homeassistant/{type}/{uniqueID}/state" */ + strlen(GET_DEV_TYPE(discHat)) + 8; //8=uniqueID
+	}
+	if(discHat.cmd_topic == true) { // TODO fixme
+//		length += 34 /* ",stat_t":"homeassistant/{type}/{uniqueID}/state" */ + strlen(GET_DEV_TYPE(discHat)) + 8; //8=uniqueID
+	}
+	if(discHat.bin_off_delay != 0) {
+		uint16_t digits = get_digits(discHat.bin_off_delay);
+		length += 11 /* ",off_dly":{offDelay} */ + digits;
+	}
 
-	buf_writeStr_var("AT+MQTTPUB=0,\"", (Buffer *)uart1_tx_buffer);
-	// Topic Start
-	buf_writeStr_var("homeassistant/", (Buffer *)uart1_tx_buffer);
-	buf_writeStr_var(type, (Buffer *)uart1_tx_buffer);
+	buf_writeStr_var("AT+MQTTPUBRAW=0,\"homeassistant/", (Buffer *)uart1_tx_buffer);
+	buf_writeStr_var(GET_DEV_TYPE(discHat), (Buffer *)uart1_tx_buffer);
 	buf_writeStr_var("/", (Buffer *)uart1_tx_buffer);
-	buf_writeStr_var(identifier, (Buffer *)uart1_tx_buffer);
-	buf_writeStr_var("/config", (Buffer *)uart1_tx_buffer);
-	// Topic End
-	buf_writeStr_var("\",\"", (Buffer *)uart1_tx_buffer);
-	// Payload Start
-	buf_writeStr_var("{'name':'", (Buffer *)uart1_tx_buffer);
-	buf_writeStr_var(friendlyName, (Buffer *)uart1_tx_buffer);
-	buf_writeStr_var("','uniq_id':'", (Buffer *)uart1_tx_buffer);
-	buf_writeStr_var(identifier, (Buffer *)uart1_tx_buffer);
-	buf_writeStr_var("','dev_cla':'", (Buffer *)uart1_tx_buffer);
-	buf_writeStr_var(class, (Buffer *)uart1_tx_buffer);
-	buf_writeStr_var("','stat_t':'homeassistant/", (Buffer *)uart1_tx_buffer);
-	buf_writeStr_var(type, (Buffer *)uart1_tx_buffer);
-	buf_writeStr_var("/", (Buffer *)uart1_tx_buffer);
-	buf_writeStr_var(identifier, (Buffer *)uart1_tx_buffer);
-	buf_writeStr_var("/state'", (Buffer *)uart1_tx_buffer);
-	buf_writeStr_var(more_opts, (Buffer *)uart1_tx_buffer);
-	buf_writeStr_var("}", (Buffer *)uart1_tx_buffer);
-	// Payload End
-	wifi_send_AT("\",0,0\r\n", check_OK);
+	buf_writeChars_var((Buffer *)uart1_tx_buffer, uniqueID, 8);
+	buf_writeStr_var("/config\",", (Buffer *)uart1_tx_buffer);
+	char lengthStr[5];
+	snprintf(lengthStr, sizeof(lengthStr), "%04lu", length);
+	buf_writeStr_var(lengthStr, (Buffer *)uart1_tx_buffer);
+	wifi_send_AT(",0,0\r\n", check_OK);
+
+	delay_ms(200); // wait for >
+
+	buf_writeStr_var("{\"name\":\"", (Buffer *)uart1_tx_buffer);
+	buf_writeStr_var(discHat.friendly_name, (Buffer *)uart1_tx_buffer);
+	buf_writeStr_var("\",\"dev_cla\":\"", (Buffer *)uart1_tx_buffer);
+	buf_writeStr_var(GET_DEV_CLASS(discHat), (Buffer *)uart1_tx_buffer);
+	buf_writeStr_var("\",\"uniq_id\":\"", (Buffer *)uart1_tx_buffer);
+	buf_writeChars_var((Buffer *)uart1_tx_buffer, uniqueID, 8);
+	uart1_transmit("\"");
+
+	while((LPUART1->CR1 & USART_CR1_TXEIE) == USART_CR1_TXEIE); // wait for tx finish
+	buf_clear((Buffer *)uart1_tx_buffer);
+
+	if(discHat.state_topic) {
+		buf_writeStr_var(",\"state_t\":\"homeassistant/", (Buffer *)uart1_tx_buffer);
+		buf_writeStr_var(GET_DEV_TYPE(discHat), (Buffer *)uart1_tx_buffer);
+		buf_writeStr_var("/", (Buffer *)uart1_tx_buffer);
+		buf_writeChars_var((Buffer *)uart1_tx_buffer, uniqueID, 8);
+		buf_writeStr_var("/state\"", (Buffer *)uart1_tx_buffer);
+	}
+	if(discHat.cmd_topic) { // TODO fixme
+//		uart1_transmit(",\"state_t\":\"homeassistant/");
+//		uart1_transmit(GET_DEV_TYPE(discHat));
+//		uart1_transmit("/");
+//		uart1_transmit(uniqueID);
+//		uart1_transmit("/state\"");
+	}
+	if(discHat.bin_off_delay != 0) {
+		char off_delay[6];
+		snprintf(off_delay, sizeof(off_delay), "%u", discHat.bin_off_delay);
+		buf_writeStr_var(",\"off_dly\":", (Buffer *)uart1_tx_buffer);
+		buf_writeStr_var(off_delay, (Buffer *)uart1_tx_buffer);
+	}
+
+	uart1_transmit("}");
+	while((LPUART1->CR1 & USART_CR1_TXEIE) == USART_CR1_TXEIE); // wait for tx finish
+	buf_clear((Buffer *)uart1_tx_buffer);
 }
 
 void wifi_send_AT(char * str, check_t check) {
@@ -265,8 +300,8 @@ void check_string_fn_OLD(char * match) {
 	bool alive = true;
 	uint8_t prevHead = uart1_rx_buffer->head;
 
-	uint8_t connArr[12]; // debug
-	uint8_t connI = 0; // debug
+//	uint8_t connArr[12]; // debug
+//	uint8_t connI = 0; // debug
 
 	uint8_t strLen = strlen(match);
 
@@ -276,7 +311,7 @@ void check_string_fn_OLD(char * match) {
 		uint8_t lineLen = head - prevHead;
 		uart1Flag--;
 
-		connArr[connI++] = lineLen; // debug
+//		connArr[connI++] = lineLen; // debug
 
 		if(lineLen == strLen) {
 			unsigned char *letter = &(uart1_rx_buffer->buffer[head - strLen - 1]);

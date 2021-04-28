@@ -9,8 +9,9 @@
 #define MQTT_H_
 
 #include "stm32l0xx.h"
+#include "wifi.h"
 
-void mqtt_discover(uint64_t addr, char hatId);
-void mqtt_value(uint64_t addr, char val1, char val2);
+void mqtt_discover(uint32_t addrH, uint32_t addrL, char hatId);
+void mqtt_value(uint32_t addrH, uint32_t addrL, char val1, char val2);
 
 #endif /* MQTT_H_ */

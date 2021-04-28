@@ -18,11 +18,12 @@
 #define IS_TX_COMPLETE (((isrflags & USART_ISR_TC) != RESET) && ((cr1its & USART_CR1_TCIE) != RESET))
 
 void uart2_init(void);
-void uart2_transmit(char * str);
+void uart2_transmit(const char * str);
 void uart2_receive(void);
 void uart2_update_match(uint8_t);
 
-void uart1_transmit(char * str);
+void uart1_transmit(const char * str);
+void uart1_transmit_len(const char * str, uint16_t size);
 void uart1_receive(void);
 void uart1_update_match(uint8_t match);
 

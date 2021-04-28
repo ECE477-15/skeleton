@@ -78,6 +78,7 @@ uint16_t buf_writeChars(Buffer *buffer, const char *str, size_t strLen);
 void buf_pop_tail(Buffer *buffer, uint16_t len);
 
 uint16_t buf_writeStr_var(const char *str, Buffer *buffer);
+uint16_t buf_writeChars_var(Buffer *buffer, const char *str, size_t strLen);
 uint16_t buf_ok_var(Buffer *buffer);
 
 /********************** VARIABLES **********************/

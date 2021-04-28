@@ -188,9 +188,8 @@ void xbee_send_message(tx_req_frame_t *txReq) {
 void xbee_rx_complete(uint16_t len) {
 	rx_frame_t *msg = (rx_frame_t *)&(uart2_rx_buffer->buffer[uart2_rx_buffer->tail]);
 
-	uint64_t addr = (uint64_t)ENDIAN_SWAP32(msg->addrH);
-	addr <<= 32;
-	addr |= ENDIAN_SWAP32(msg->addrL);
+	uint32_t addrH = ENDIAN_SWAP32(msg->addrH);
+	uint32_t addrL = ENDIAN_SWAP32(msg->addrL);
 
 	uint8_t checksum = 0x0;
 	uint8_t * checker = (uint8_t *)&(msg->frameType);
@@ -210,10 +209,10 @@ void xbee_rx_complete(uint16_t len) {
 
 	switch((xbee_msg_cmd_t)payload[0]) {
 		case discover:
-				mqtt_discover(addr, payload[1]);
+				mqtt_discover(addrH, addrL, payload[1]);
 			break;
 		case send_value:
-				mqtt_value(addr, payload[1], payload[2]);
+				mqtt_value(addrH, addrL, payload[1], payload[2]);
 			break;
 		default:
 			error(__LINE__);

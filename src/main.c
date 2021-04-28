@@ -303,3 +303,12 @@ void error(uint32_t source) {
 		}
 	}
 }
+
+uint16_t get_digits(uint32_t digits) {
+	uint16_t count = 0;
+	while (digits != 0) {
+		digits /= 10;     // n = n/10
+		++count;
+	}
+	return count;
+}

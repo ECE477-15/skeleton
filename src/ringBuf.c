@@ -76,6 +76,27 @@ uint16_t buf_writeChars(Buffer *buffer, const char *str, size_t strLen) {
 	return 1;
 }
 
+uint16_t buf_writeChars_var(Buffer *buffer, const char *str, size_t strLen) {
+	if(strLen > BUF_AVAIL_VAR(buffer)) {
+		return 0;
+	}
+
+	if(buffer->head + strLen < buffer->len) { // single memcpy, not circular
+		memcpy(&(buffer->buffer[buffer->head]), str, strLen);
+		buffer->head += strLen;
+	} else { // two memcpy, circular
+		int firstSize = buffer->len - buffer->head;
+		memcpy(&(buffer->buffer[buffer->head]), str, firstSize);
+
+		int secondSize = strLen - firstSize;
+		memcpy(&(buffer->buffer[0]), &(str[firstSize]), secondSize);
+
+		buffer->head = secondSize;
+	}
+
+	return 1;
+}
+
 //uint16_t buf_ok(Buffer *buffer) {
 //	const char * str = "OK\r";
 //	const uint16_t strLen = 3;

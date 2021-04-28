@@ -9,9 +9,12 @@
 #define WIFI_H_
 
 #include "stm32l0xx.h"
+#include "stdbool.h"
+#include "main.h"
 
 void wifi_setup(void);
 void wifi_send_mqtt(char * topic, char * payload);
-void wifi_send_mqtt_disco(char * friendlyName, char * identifier, char *type, char *class, char *more_opts);
+void wifi_send_mqtt_disco(hat_t discoHat, char *uniqueID);
+
 
 #endif /* WIFI_H_ */

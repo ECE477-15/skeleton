@@ -40,15 +40,22 @@ void uart1_receive() {
 	SET_BIT(LPUART1->CR1, USART_CR1_PEIE | USART_CR1_RXNEIE);
 }
 
-void uart2_transmit(char * str) {
+void uart2_transmit(const char * str) {
 	buf_writeStr(str, uart2_tx_buffer);
 
 	// Enable the Transmit Data Register Empty interrupt
 	SET_BIT(USART2->CR1, USART_CR1_TXEIE);
 }
 
-void uart1_transmit(char * str) {
+void uart1_transmit(const char * str) {
 	buf_writeStr_var(str, (Buffer *)uart1_tx_buffer);
+
+	// Enable the Transmit Data Register Empty interrupt
+	SET_BIT(LPUART1->CR1, USART_CR1_TXEIE);
+}
+
+void uart1_transmit_len(const char * str, uint16_t size) {
+	buf_writeChars_var((Buffer *)uart1_tx_buffer, str, size);
 
 	// Enable the Transmit Data Register Empty interrupt
 	SET_BIT(LPUART1->CR1, USART_CR1_TXEIE);

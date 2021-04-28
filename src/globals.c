@@ -1,6 +1,14 @@
 #include "main.h"
 #include "hats.h"
 
+const char* const device_classes[DEVICE_CLASS_SIZE] = {
+	[motion] = "motion",
+};
+const char* const device_types[DEVICE_TYPE_SIZE] = {
+	[sensor] = "sensor",
+	[binary_sensor] = "binary_sensor",
+};
+
 global_state_t global_state = {
 	.state = NO_HAT
 };
@@ -42,11 +50,16 @@ hat_config_t hat_list[HAT_LIST_LEN] = {
 	[push_button].hat_initial_setup = blank_setup,
 
 	[PIR_motion].friendly_name = "PIR Motion",
+	[PIR_motion].dev_type = binary_sensor,
+	[PIR_motion].dev_class = motion,
 	[PIR_motion].hat_resistance = 47000,
 	[PIR_motion].gpio_setup = hat_interrupt_PB11,
 	[PIR_motion].type = external_interrupt,
 	[PIR_motion].handler = send_homeassistant_boolean_PB11,
 	[PIR_motion].hat_initial_setup = blank_setup,
+	[PIR_motion].bin_off_delay = 30,
+	[PIR_motion].state_topic = true,
+	[PIR_motion].cmd_topic = false,
 
 	[force_resistor].friendly_name = "Push Button",
 	[force_resistor].hat_resistance = 4,

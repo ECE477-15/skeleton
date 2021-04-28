@@ -7,6 +7,9 @@
 #define MCU_HAT_REF_RES (22000) /* MCU Hat reference resistor */
 #define GET_HAT_CONFIG(HAT) (&(hat_list[HAT]))
 
+#define GET_DEV_TYPE(DEV) (device_types[DEV.dev_type])
+#define GET_DEV_CLASS(DEV) (device_classes[DEV.dev_class])
+
 #define ATTR_OPTIMIZE(n)          __attribute__ ((optimize(XSTRING_(O##n))))
 #define __ALWAYS_INLINE 		  __attribute__ ((always_inline))
 
@@ -58,17 +61,35 @@ typedef enum {
 } mcu_status_t;
 
 typedef enum {
+	motion,
+
+	DEVICE_CLASS_SIZE
+} device_class_t;
+
+typedef enum {
+	sensor,
+	binary_sensor,
+
+	DEVICE_TYPE_SIZE
+} device_type_t;
+
+typedef enum {
 	hat_connect,
 	hat_disconnect
 } hat_detect_trigger_t;
 
 typedef struct {
 	char * friendly_name;
+	device_class_t dev_class;
+	device_type_t dev_type;
 	uint32_t hat_resistance;
 	fn_ptr gpio_setup;
 	fn_ptr hat_initial_setup;
 	hat_conn_t type;
 	fn_ptr handler;
+	uint16_t bin_off_delay;
+	bool state_topic;
+	bool cmd_topic;
 } hat_config_t;
 
 typedef struct {
@@ -91,6 +112,7 @@ hat_t get_hat_from_adc(float adcReading);
 void declare_hat();
 void reset_hat_gpio(void);
 void error(uint32_t);
+uint16_t get_digits(uint32_t);
 
 /******* Global Variables ********/
 global_state_t global_state;
@@ -98,6 +120,9 @@ hat_config_t hat_list[HAT_LIST_LEN];
 volatile uint8_t hat_flag;
 volatile uint8_t xbee_uart_flag;
 volatile uint8_t hat_conn_flag;
+
+const char* const device_classes[DEVICE_CLASS_SIZE];
+const char* const device_types[DEVICE_TYPE_SIZE];
 
 #endif /* MAIN_H_ */
 
