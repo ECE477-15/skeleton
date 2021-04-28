@@ -19,13 +19,19 @@ global_state_t global_state = {
 };
 
 hat_config_t hat_list[HAT_LIST_LEN] = {
-	[not_connected].friendly_name = "No Hat Detected!",
-	[not_connected].hat_resistance = 0,
-	[not_connected].gpio_setup = blank_setup,
-	[not_connected].type = none,
-	[not_connected].handler = 0,
-	[not_connected].hat_initial_setup = blank_setup,
-
+	[not_connected] = {
+			.friendly_name = "No Hat Detected!",
+			.hat_resistance = 0,
+			.gpio_setup = blank_setup,
+			.type = none,
+			.handler = 0,
+			.hat_initial_setup = blank_setup,
+			.dev_type = type_none,
+			.dev_class = class_none,
+			.bin_off_delay = 0,
+			.state_topic = false,
+			.cmd_topic = false,
+	},
 	[temp_hum] = {
 			.friendly_name = "Temperature & Humidity Sensor",
 			.hat_resistance = 220000,
@@ -39,7 +45,6 @@ hat_config_t hat_list[HAT_LIST_LEN] = {
 			.state_topic = true,
 			.cmd_topic = false,
 	},
-
 	[led_driver] = {
 			.friendly_name = "LED Driver",
 			.hat_resistance = 6800,
@@ -53,14 +58,19 @@ hat_config_t hat_list[HAT_LIST_LEN] = {
 			.state_topic = false,
 			.cmd_topic = true,
 	},
-
-	[magnet_switch].friendly_name = "Magnet Sensor",
-	[magnet_switch].hat_resistance = 56000,
-	[magnet_switch].gpio_setup = hat_interrupt_PB11,
-	[magnet_switch].type = external_interrupt,
-	[magnet_switch].handler = send_homeassistant_boolean_PB11,
-	[magnet_switch].hat_initial_setup = blank_setup,
-
+	[magnet_switch] = {
+			.friendly_name = "Magnet Sensor",
+			.hat_resistance = 56000,
+			.gpio_setup = hat_interrupt_PB11,	// WANT RISING AND FALLING
+			.type = external_interrupt,
+			.handler = send_homeassistant_boolean_PB11,
+			.hat_initial_setup = blank_setup,
+			.dev_type = binary_sensor,
+			.dev_class = motion,	// todo
+			.bin_off_delay = 0,
+			.state_topic = true,
+			.cmd_topic = false,
+	},
 	[push_button] = {
 			.friendly_name = "Push Button",
 			.hat_resistance = 2,
@@ -68,38 +78,52 @@ hat_config_t hat_list[HAT_LIST_LEN] = {
 			.type = external_interrupt,
 			.handler = send_homeassistant_boolean_PB11,
 			.hat_initial_setup = blank_setup,
-			.dev_type = binary_sensor,
-			.dev_class = motion,
+			.dev_type = binary_sensor, // todo
+			.dev_class = motion, // todo
 			.bin_off_delay = 0,
-			.state_topic = false,
-			.cmd_topic = true,
+			.state_topic = true,
+			.cmd_topic = false,
 	},
-
-	[PIR_motion].friendly_name = "PIR Motion",
-	[PIR_motion].dev_type = binary_sensor,
-	[PIR_motion].dev_class = motion,
-	[PIR_motion].hat_resistance = 47000,
-	[PIR_motion].gpio_setup = hat_interrupt_PB11,
-	[PIR_motion].type = external_interrupt,
-	[PIR_motion].handler = send_homeassistant_boolean_PB11,
-	[PIR_motion].hat_initial_setup = blank_setup,
-	[PIR_motion].bin_off_delay = 30,
-	[PIR_motion].state_topic = true,
-	[PIR_motion].cmd_topic = false,
-
-	[force_resistor].friendly_name = "Force Sensor",
-	[force_resistor].hat_resistance = 4,
-	[force_resistor].gpio_setup = hat_interrupt_PB11,
-	[force_resistor].type = comparator,
-	[force_resistor].handler = send_homeassistant_boolean_PB11,
-	[force_resistor].hat_initial_setup = blank_setup,
-
-	[wifi_gateway].friendly_name = "WiFi Gateway",
-	[wifi_gateway].hat_resistance = 10000,
-	[wifi_gateway].gpio_setup = hat_uart_115200,
-	[wifi_gateway].type = uart,
-	[wifi_gateway].handler = 0,
-	[wifi_gateway].hat_initial_setup = wifi_setup,
+	[PIR_motion] = {
+		.friendly_name = "PIR Motion",
+		.hat_resistance = 47000,
+		.gpio_setup = hat_interrupt_PB11,
+		.type = external_interrupt,
+		.handler = send_homeassistant_boolean_PB11,
+		.hat_initial_setup = blank_setup,
+		.dev_type = binary_sensor,
+		.dev_class = motion,
+		.bin_off_delay = 30,
+		.state_topic = true,
+		.cmd_topic = false,
+	},
+	[force_resistor] = {
+		.friendly_name = "Force Sensor",
+		.hat_resistance = 4,
+		.gpio_setup = hat_interrupt_PB11,
+		.type = comparator, //todo
+		.handler = send_homeassistant_boolean_PB11,
+		.hat_initial_setup = blank_setup,
+		// TODO: below
+		.dev_type = type_none,
+		.dev_class = class_none,
+		.bin_off_delay = 0,
+		.state_topic = false,
+		.cmd_topic = false,
+	},
+	[wifi_gateway] = {
+		.friendly_name = "WiFi Gateway",
+		.hat_resistance = 10000,
+		.gpio_setup = hat_uart_115200,
+		.type = uart,
+		.handler = 0,
+		.hat_initial_setup = wifi_setup,
+		.dev_type = type_none,
+		.dev_class = class_none,
+		.bin_off_delay = 0,
+		.state_topic = false,
+		.cmd_topic = false,
+	},
 };
 
 // flags & handlers

@@ -71,6 +71,7 @@ typedef enum {
 } device_class_t;
 
 typedef enum {
+	type_none,
 	sensor,
 	binary_sensor,
 
@@ -109,7 +110,6 @@ uint16_t hat_is_connected();
 void get_initial_state(void);
 void xbee_init(void);
 void battery_baby_init(void);
-void xbee_uart_handler(void);
 void setup_hat(void);
 uint32_t get_hat_adc(void);
 hat_t get_hat_from_adc(float adcReading);

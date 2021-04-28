@@ -101,7 +101,8 @@ typedef enum {
 	unused,
 	discover,
 	update,
-	send_value
+	send_value,
+	undiscover
 } xbee_msg_cmd_t;
 
 

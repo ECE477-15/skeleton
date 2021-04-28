@@ -15,6 +15,7 @@
 void wifi_setup(void);
 void wifi_send_mqtt(hat_t discoHat, char *uniqueID, char * payload);
 void wifi_send_mqtt_disco(hat_t discoHat, char *uniqueID, device_class_t dev_class);
+void wifi_send_mqtt_undisco(hat_t discoHat, char *uniqueID);
 
 
 #endif /* WIFI_H_ */

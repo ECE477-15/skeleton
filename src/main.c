@@ -169,7 +169,21 @@ void hat_deinit() {
 void declare_hat() {
 	uint16_t connHat = (uint16_t)global_state.connectedHat;
 
-	// TODO MAYBE: if its a "not_connected" hat, don't update
+	// Tell homeassistant previous hat is gone
+	uint16_t lastHat;
+	EEPROM_READ(eeprom_config->declaredHat, lastHat);
+	if(connHat != wifi_gateway) {
+		tx_req_frame_t txReq = {
+				.addrH = ENDIAN_SWAP32(0x0),
+				.addrL = ENDIAN_SWAP32(0xFFFF),
+		};
+		uint8_t payload[3] = {(char)undiscover, 0x0, 0x0};
+		payload[1] = lastHat & 0xFF;
+		payload[2] = lastHat >> 8;
+		xbee_msg->payload = payload;
+		xbee_msg->payloadLen = 3;
+		xbee_send_message(&txReq);
+	}
 
 	// send current hat setup to home assistant
 	if(connHat != wifi_gateway) {
@@ -190,10 +204,6 @@ void declare_hat() {
 }
 
 void battery_baby_init(void) {
-	// TODO
-}
-
-void xbee_uart_handler(void) {
 	// TODO
 }
 

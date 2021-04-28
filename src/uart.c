@@ -148,7 +148,7 @@ void USART2_IRQHandler(void) {
 					uart2_rx_buffer->buffer[uart2_rx_buffer->head] = receiveData;
 					uart2_rx_buffer->head = bufPos;
 				} else {	// buffer overflow
-					error(__LINE__); // TODO
+					error(__LINE__);
 				}
 
 //				if(receiveData == '\r') {
@@ -200,7 +200,7 @@ void RNG_LPUART1_IRQHandler(void) {
 					uart1_rx_buffer->buffer[uart1_rx_buffer->head] = receiveData;
 					uart1_rx_buffer->head = bufPos;
 				} else {	// buffer overflow
-					error(__LINE__); // TODO
+					error(__LINE__);
 				}
 
 //				if(receiveData == '\n') {

@@ -13,5 +13,6 @@
 
 void mqtt_discover(uint32_t addrH, uint32_t addrL, char hatId);
 void mqtt_value(uint32_t addrH, uint32_t addrL, char hatId, char* payload);
+void mqtt_undiscover(uint32_t addrH, uint32_t addrL, char hatId);
 
 #endif /* MQTT_H_ */

@@ -218,13 +218,17 @@ void xbee_rx_complete(uint16_t len) {
 	}
 
 	char *payload = (char *)&(msg->payload_start);
+	char hatId = payload[1];
 
 	switch((xbee_msg_cmd_t)payload[0]) {
 		case discover:
-				mqtt_discover(addrH, addrL, payload[1]);
+			mqtt_discover(addrH, addrL, hatId);
 			break;
 		case send_value:
-				mqtt_value(addrH, addrL, payload[1], &(payload[2]));
+			mqtt_value(addrH, addrL, hatId, &(payload[2]));
+			break;
+		case undiscover:
+			mqtt_undiscover(addrH, addrL, hatId);
 			break;
 		default:
 			error(__LINE__);

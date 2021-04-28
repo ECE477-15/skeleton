@@ -72,7 +72,6 @@ void send_homeassistant_boolean_PB11() {
 //	}
 
 	// send homeassistant an update on a boolean sensor value
-	// TODO
 	tx_req_frame_t txReq = {
 			.addrH = ENDIAN_SWAP32(0x0),
 			.addrL = ENDIAN_SWAP32(0xFFFF),
