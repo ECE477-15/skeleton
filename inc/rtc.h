@@ -5,3 +5,6 @@
 
 void rtc_init(void);
 void rtc_setTimeout(int);
+
+
+#define RTC_waitTime (0x9C0)

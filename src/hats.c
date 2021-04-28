@@ -110,7 +110,7 @@ void EXTI4_15_IRQHandler() {
 
 void RTC_IRQHandler()
 {
-    RTC -> ISR &= ~RTC_ISR_WUTF;
+    CLEAR_BIT(RTC->ISR, RTC_ISR_WUTF);
     hat_flag = 1;
 }
 
@@ -120,7 +120,7 @@ void hdc2010_setup() {
 
 
 //
-//     rtc_init();
+     rtc_init();
 //     rtc_setTimeout(15); // this function puts it to sleep, rtc interrupt sets hatFlag
 }
 
