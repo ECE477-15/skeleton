@@ -7,11 +7,7 @@
 
 #include "hats.h"
 #include "main.h"
-#include "String.h"
 #include "delay.h"
-
-
-void rest_enter_stop();
 
 
 void rest_enter_stop() {
@@ -36,17 +32,6 @@ void rest_enter_stop() {
 	CLEAR_BIT(SCB->SCR, SCB_SCR_SLEEPDEEP_Msk);
 }
 
-void rest_initGPIO()
-{
-	RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN;	// RCC_SYSCFG_CLK_ENABLE
-
-	// set pa0 for input
-	RCC->IOPENR |= RCC_IOPENR_GPIOAEN;   // enable clock to gpio A
-	RCC->IOPSMENR |= RCC_IOPSMENR_GPIOASMEN;   // enable clock for port A during sleep
-	GPIOA->MODER &= !(GPIO_MODER_MODE0);      // clearing mode value to (00) for input
-	GPIOA->PUPDR &= !(GPIO_PUPDR_PUPD0);   // set pin to no pull up
-
-}
 
 
 
