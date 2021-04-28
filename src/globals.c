@@ -1,5 +1,6 @@
 #include "main.h"
 #include "hats.h"
+#include "i2c.h"
 
 const char* const device_classes[DEVICE_CLASS_SIZE] = {
 	[motion] = "motion",
@@ -22,18 +23,18 @@ hat_config_t hat_list[HAT_LIST_LEN] = {
 	[not_connected].hat_initial_setup = blank_setup,
 
 	[temp_hum].friendly_name = "Temperature & Humidity Sensor",
-	[temp_hum].hat_resistance = 1,
-	[temp_hum].gpio_setup = blank_setup,		// i2c gpio init
+	[temp_hum].hat_resistance = 220000,
+	[temp_hum].gpio_setup = i2c_hat_setup,
 	[temp_hum].type = i2c,
-	[temp_hum].handler = 0,
-	[temp_hum].hat_initial_setup = blank_setup,
+	[temp_hum].handler = hdc2010_send,
+	[temp_hum].hat_initial_setup = hdc2010_setup,
 
 	[led_driver].friendly_name = "LED Driver",
-	[led_driver].hat_resistance = 2,
-	[led_driver].gpio_setup = blank_setup,	// i2c gpio init
+	[led_driver].hat_resistance = 6800,
+	[led_driver].gpio_setup = i2c_hat_setup,
 	[led_driver].type = i2c,
 	[led_driver].handler = 0,
-	[led_driver].hat_initial_setup = blank_setup,
+	[led_driver].hat_initial_setup = lp5523_setup,
 
 	[magnet_switch].friendly_name = "Magnet Sensor",
 	[magnet_switch].hat_resistance = 56000,
@@ -61,7 +62,7 @@ hat_config_t hat_list[HAT_LIST_LEN] = {
 	[PIR_motion].state_topic = true,
 	[PIR_motion].cmd_topic = false,
 
-	[force_resistor].friendly_name = "Push Button",
+	[force_resistor].friendly_name = "Force Sensor",
 	[force_resistor].hat_resistance = 4,
 	[force_resistor].gpio_setup = hat_interrupt_PB11,
 	[force_resistor].type = comparator,
