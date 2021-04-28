@@ -10,6 +10,7 @@
 #include "main.h"
 #include "delay.h"
 #include "mqtt.h"
+#include "string.h"
 
 /********************** FUNCTION DECLARATIONS **********************/
 void xbee_send_at(char * str, bool check);
@@ -186,7 +187,18 @@ void xbee_send_message(tx_req_frame_t *txReq) {
 }
 
 void xbee_rx_complete(uint16_t len) {
-	rx_frame_t *msg = (rx_frame_t *)&(uart2_rx_buffer->buffer[uart2_rx_buffer->tail]);
+	unsigned char msgArr[64];
+	rx_frame_t *msg;
+
+	// check to see if the ring buffer wrapped around
+	if(uart2_rx_buffer->tail + len <= uart2_rx_buffer->len) {
+		msg = (rx_frame_t *)&(uart2_rx_buffer->buffer[uart2_rx_buffer->tail]);
+	} else {
+		uint16_t sizeTop = (uart2_rx_buffer->len - uart2_rx_buffer->tail);
+		memcpy(msgArr, &(uart2_rx_buffer->buffer[uart2_rx_buffer->tail]), sizeTop);
+		memcpy(&(msgArr[sizeTop]), &(uart2_rx_buffer->buffer[0]), len - sizeTop);
+		msg = (rx_frame_t *)msgArr;
+	}
 
 	uint32_t addrH = ENDIAN_SWAP32(msg->addrH);
 	uint32_t addrL = ENDIAN_SWAP32(msg->addrL);

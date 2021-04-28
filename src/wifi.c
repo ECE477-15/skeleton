@@ -76,7 +76,7 @@ void wifi_send_mqtt(hat_t discoHat, char *uniqueID, char * payload) {
 	buf_writeStr_var("AT+MQTTPUB=0,\"homeassistant/", (Buffer *)uart1_tx_buffer);
 	buf_writeStr_var(GET_DEV_TYPE(hat_config), (Buffer *)uart1_tx_buffer);
 	buf_writeStr_var("/", (Buffer *)uart1_tx_buffer);
-	buf_writeChars_var((Buffer *)uart1_tx_buffer, uniqueID, 8);
+	buf_writeStr_var(uniqueID, (Buffer *)uart1_tx_buffer);
 	buf_writeStr_var("/state\",\"", (Buffer *)uart1_tx_buffer);
 	buf_writeStr_var(payload, (Buffer *)uart1_tx_buffer);
 	wifi_send_AT("\",0,0\r\n", check_OK);

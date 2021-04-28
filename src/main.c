@@ -172,7 +172,6 @@ void declare_hat() {
 	// TODO MAYBE: if its a "not_connected" hat, don't update
 
 	// send current hat setup to home assistant
-	// TODO (started below, verify)
 	if(connHat != wifi_gateway) {
 		tx_req_frame_t txReq = {
 				.addrH = ENDIAN_SWAP32(0x0),
