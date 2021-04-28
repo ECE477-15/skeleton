@@ -11,6 +11,7 @@
 #include "xbee.h"
 #include "i2c.h"
 #include "String.h"
+#include "delay.h"
 
 // Setup hat for PB11 generating interrupts on LO and HI (falling and rising)
 void hat_interrupt_PB11(void) {
@@ -73,7 +74,7 @@ void send_homeassistant_boolean_PB11() {
 			.addrH = ENDIAN_SWAP32(0x0),
 			.addrL = ENDIAN_SWAP32(0xFFFF),
 	};
-	uint8_t payload[3] = {(char)send_value, (value & 0xFF), 0x0};
+	uint8_t payload[3] = {(char)send_value, (0xff & global_state.connectedHat),(value & 0xFF)};
 	xbee_msg->payload = payload;
 	xbee_msg->payloadLen = 3;
 	xbee_send_message(&txReq);
@@ -139,7 +140,7 @@ void hdc_i2c_setup() {
 	uint16_t hum = 0;
 	I2C_Init();
 	I2C_hdc2010_enable();
-//	hum = I2C_getHDCHumidity();
+
 //	char sen [20];
 //	char snum [4];
 //	strcpy(sen, "\n Humidity: ");
@@ -147,6 +148,35 @@ void hdc_i2c_setup() {
 //	strcat(sen, snum);
 //	strcat(sen, "\r");
 //	xbee_send_at(sen, true);
+
+	while (1) {
+		hum = I2C_getHDCHumidity();
+		tx_req_frame_t txReq = {
+				.addrH = ENDIAN_SWAP32(0x0),
+				.addrL = ENDIAN_SWAP32(0xFFFF),
+		};
+		uint8_t payload[3] = {(char)send_value, (hum & 0xFF), 0x0};
+		xbee_msg->payload = payload;
+		xbee_msg->payloadLen = 3;
+		xbee_send_message(&txReq);
+
+		delay_ms(5000);
+
+		hum = I2C_getHDCTemp();
+		tx_req_frame_t txRe = {
+				.addrH = ENDIAN_SWAP32(0x0),
+				.addrL = ENDIAN_SWAP32(0xFFFF),
+		};
+		uint8_t payload2[3] = {(char)send_value, (hum & 0xFF), 0x0};
+		xbee_msg->payload = payload2;
+		xbee_msg->payloadLen = 3;
+		xbee_send_message(&txRe);
+
+		delay_ms(5000);
+
+	}
+
+
 }
 
 void hat_uart_115200() {
