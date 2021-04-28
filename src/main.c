@@ -25,6 +25,7 @@ int main(void) {
 	uart2_receive();
 
 	get_initial_state();
+//	hdc2010_send();
 
 	while(1) {
 		/****** Hat Connected or Disconnected ******/

@@ -118,8 +118,10 @@ void hdc2010_setup() {
     uint8_t value = 0;
     I2C_Mem_Tx(HDC2010_Addr, HDC2010_CONFIG, 1, &value, 1);
 
-     rtc_init();
-     rtc_setTimeout(15); // this function puts it to sleep, rtc interrupt sets hatFlag
+
+//
+//     rtc_init();
+//     rtc_setTimeout(15); // this function puts it to sleep, rtc interrupt sets hatFlag
 }
 
 void lp5523_setup() {
