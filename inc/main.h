@@ -61,7 +61,11 @@ typedef enum {
 } mcu_status_t;
 
 typedef enum {
+	class_none,
 	motion,
+	class_temp,
+	class_hum,
+	class_tempHum,
 
 	DEVICE_CLASS_SIZE
 } device_class_t;
