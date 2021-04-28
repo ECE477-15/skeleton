@@ -13,7 +13,7 @@
 #include "main.h"
 
 void wifi_setup(void);
-void wifi_send_mqtt(char * topic, char * payload);
+void wifi_send_mqtt(hat_t discoHat, char *uniqueID, char * payload);
 void wifi_send_mqtt_disco(hat_t discoHat, char *uniqueID);
 
 

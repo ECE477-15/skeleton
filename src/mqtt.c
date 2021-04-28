@@ -10,24 +10,47 @@
 
 void mqtt_discover(uint32_t addrH, uint32_t addrL, char hatId) {
 	if(global_state.connectedHat != wifi_gateway) {	// todo, check to see if connection to mqtt is good as well
-		error(__LINE__);
+		return;
 	}
 	if(hatId >= HAT_LIST_LEN || hatId == 0) {
 		error(__LINE__);
 	}
 
 	char uniqueID[8];
-	*((uint32_t *)uniqueID) = addrH;
-	*(((uint32_t *)uniqueID) + 1) = addrL;
+	uint32_t uniqueInt = addrL;
+	for(uint8_t i = 0; i < 8; i++) {
+		uniqueID[i] = (char)(uniqueInt & 0xF) + 65;
+		uniqueInt >>= 4;
+	}
 
 	wifi_send_mqtt_disco((hat_t)hatId, uniqueID);
 }
 
-void mqtt_value(uint32_t addrH, uint32_t addrL, char val1, char val2) {
+void mqtt_value(uint32_t addrH, uint32_t addrL, char hatId, char* payload) {
 	if(global_state.connectedHat != wifi_gateway) {
-		error(__LINE__);
+		return;
+	}
+
+	char uniqueID[8];
+	uint32_t uniqueInt = addrL;
+	for(uint8_t i = 0; i < 8; i++) {
+		uniqueID[i] = (char)(uniqueInt & 0xF) + 65;
+		uniqueInt >>= 4;
 	}
 
 	// TODO
-	wifi_send_mqtt("homeassistant/binary_sensor/UNIQUE_ID/state", "ON");
+	switch(hat_list[(hat_t)hatId].dev_type) {
+		case binary_sensor:
+			if(payload[0]) {
+				wifi_send_mqtt((hat_t)hatId, uniqueID, "ON");
+			} else {
+				wifi_send_mqtt((hat_t)hatId, uniqueID, "OFF");
+			}
+			break;
+		case sensor:
+
+			break;
+		default:
+			break;
+	}
 }

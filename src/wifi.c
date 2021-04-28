@@ -70,13 +70,17 @@ void wifi_setup() {
 //	wifi_send_AT("AT+MQTTPUB=0,\"homeassistant/sensor/sensorBedroom/state\",\"12\",0,0\r\n", check_OK);
 
 	// TODO remove me
-	wifi_send_mqtt_disco(PIR_motion, "12345678");
+//	wifi_send_mqtt_disco(PIR_motion, "12345678");
 }
 
-void wifi_send_mqtt(char * topic, char * payload) {
-	buf_writeStr_var("AT+MQTTPUB=0,\"", (Buffer *)uart1_tx_buffer);
-	buf_writeStr_var(topic, (Buffer *)uart1_tx_buffer);
-	buf_writeStr_var("\",\"", (Buffer *)uart1_tx_buffer);
+void wifi_send_mqtt(hat_t discoHat, char *uniqueID, char * payload) {
+	hat_config_t hat_config = hat_list[discoHat];
+
+	buf_writeStr_var("AT+MQTTPUB=0,\"homeassistant/", (Buffer *)uart1_tx_buffer);
+	buf_writeStr_var(GET_DEV_TYPE(hat_config), (Buffer *)uart1_tx_buffer);
+	buf_writeStr_var("/", (Buffer *)uart1_tx_buffer);
+	buf_writeChars_var((Buffer *)uart1_tx_buffer, uniqueID, 8);
+	buf_writeStr_var("/state\",\"", (Buffer *)uart1_tx_buffer);
 	buf_writeStr_var(payload, (Buffer *)uart1_tx_buffer);
 	wifi_send_AT("\",0,0\r\n", check_OK);
 }
@@ -89,7 +93,7 @@ void wifi_send_mqtt_disco(hat_t discoHat, char *uniqueID) {
 					+ 13 /* "dev_cla":"{}", */ 	+ strlen(GET_DEV_CLASS(discHat))
 					+ 12 /* "uniq_id":"{}" */ 	+ 8; //8=uniqueID
 	if(discHat.state_topic == true) {
-		length += 34 /* ",stat_t":"homeassistant/{type}/{uniqueID}/state" */ + strlen(GET_DEV_TYPE(discHat)) + 8; //8=uniqueID
+		length += 33 /* ",stat_t":"homeassistant/{type}/{uniqueID}/state" */ + strlen(GET_DEV_TYPE(discHat)) + 8; //8=uniqueID
 	}
 	if(discHat.cmd_topic == true) { // TODO fixme
 //		length += 34 /* ",stat_t":"homeassistant/{type}/{uniqueID}/state" */ + strlen(GET_DEV_TYPE(discHat)) + 8; //8=uniqueID
@@ -123,14 +127,14 @@ void wifi_send_mqtt_disco(hat_t discoHat, char *uniqueID) {
 	buf_clear((Buffer *)uart1_tx_buffer);
 
 	if(discHat.state_topic) {
-		buf_writeStr_var(",\"state_t\":\"homeassistant/", (Buffer *)uart1_tx_buffer);
+		buf_writeStr_var(",\"stat_t\":\"homeassistant/", (Buffer *)uart1_tx_buffer);
 		buf_writeStr_var(GET_DEV_TYPE(discHat), (Buffer *)uart1_tx_buffer);
 		buf_writeStr_var("/", (Buffer *)uart1_tx_buffer);
 		buf_writeChars_var((Buffer *)uart1_tx_buffer, uniqueID, 8);
 		buf_writeStr_var("/state\"", (Buffer *)uart1_tx_buffer);
 	}
 	if(discHat.cmd_topic) { // TODO fixme
-//		uart1_transmit(",\"state_t\":\"homeassistant/");
+//		uart1_transmit(",\"stat_t\":\"homeassistant/");
 //		uart1_transmit(GET_DEV_TYPE(discHat));
 //		uart1_transmit("/");
 //		uart1_transmit(uniqueID);
@@ -146,6 +150,8 @@ void wifi_send_mqtt_disco(hat_t discoHat, char *uniqueID) {
 	uart1_transmit("}");
 	while((LPUART1->CR1 & USART_CR1_TXEIE) == USART_CR1_TXEIE); // wait for tx finish
 	buf_clear((Buffer *)uart1_tx_buffer);
+	check_string_fn("+MQTTPUB:OK");
+	buf_clear((Buffer *)uart1_rx_buffer);
 }
 
 void wifi_send_AT(char * str, check_t check) {

@@ -12,6 +12,6 @@
 #include "wifi.h"
 
 void mqtt_discover(uint32_t addrH, uint32_t addrL, char hatId);
-void mqtt_value(uint32_t addrH, uint32_t addrL, char val1, char val2);
+void mqtt_value(uint32_t addrH, uint32_t addrL, char hatId, char* payload);
 
 #endif /* MQTT_H_ */

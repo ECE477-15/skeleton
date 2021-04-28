@@ -212,7 +212,7 @@ void xbee_rx_complete(uint16_t len) {
 				mqtt_discover(addrH, addrL, payload[1]);
 			break;
 		case send_value:
-				mqtt_value(addrH, addrL, payload[1], payload[2]);
+				mqtt_value(addrH, addrL, payload[1], &(payload[2]));
 			break;
 		default:
 			error(__LINE__);

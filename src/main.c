@@ -67,7 +67,7 @@ int main(void) {
 			} else if(xbee_status == 3) {
 				// packet complete
 				if(BUF_GET_AT(uart2_rx_buffer, (uart2_rx_buffer->tail + 3)) == XBEE_FRAME_RX_PACKET) {
-					xbee_rx_complete(xbee_length);
+					xbee_rx_complete(xbee_length + 4);
 				} else {
 					// Some other type of packet was received, should be concerned?
 					buf_clear(uart2_rx_buffer);
