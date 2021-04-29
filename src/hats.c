@@ -11,6 +11,8 @@
 #include "xbee.h"
 #include "delay.h"
 #include "i2c.h"
+#include "rtc.h"
+#include "sleep.h"
 
 void hcd2010_get(float *temp, float *hum);
 
@@ -110,8 +112,9 @@ void hdc2010_setup() {
     uint8_t value = 0;
     I2C_Mem_Tx(HDC2010_Addr, HDC2010_CONFIG, 1, &value, 1);
 
-    // rtc_init()
-    // rtc_setTimeout(15 minutes) // this function puts it to sleep, rtc interrupt sets hatFlag
+//     rtc_wakeup(60*15);	// 15 minutes
+     rtc_wakeup(10); // 10 seconds
+     hat_flag = 1;
 }
 
 void lp5523_setup() {
@@ -148,6 +151,8 @@ void hdc2010_send() {
 	xbee_msg->payload = payload;
 	xbee_msg->payloadLen = 10;
 	xbee_send_message(&txReq);
+
+	enter_stop(); // todo maybe
 }
 
 void hcd2010_get(float *temp, float *hum) {

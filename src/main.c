@@ -161,6 +161,8 @@ void hat_deinit() {
 	global_state.hatDetectTrig = hat_connect;
 	hat_detect_interrupt();
 
+	rtc_deinit();
+
 	// go to sleep (stop); can only wake-up on EXTI event
 //	enter_stop_cond(hat_is_connected);
 	enter_stop();
