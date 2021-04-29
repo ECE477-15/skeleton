@@ -38,7 +38,7 @@ void rtc_init() {
 	RTC->WUTR = RTC_waitTime; // Modify wake up value reload counter to have a wake up each 1Hz
 	SET_BIT(RTC->CR, RTC_CR_WUTE | RTC_CR_WUTIE); //Enable wake up counter and wake up interrupt
 	SET_BIT(RTC->CR, RTC_CR_OSEL_0 | RTC_CR_OSEL_1);
-	CLEAR_BIT(RTC->CR, RTC_CR_WUCKSEL_1);
+	CLEAR_BIT(RTC->CR, RTC_CR_WUCKSEL_1 | RTC_CR_WUCKSEL_0);
 	SET_BIT(RTC->CR, RTC_CR_WUCKSEL_2);
 
 	SET_BIT(RCC -> CSR, RCC_CSR_RTCSEL_LSE); // Select Low Speed External Clock
