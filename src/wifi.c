@@ -89,7 +89,7 @@ void wifi_send_mqtt_undisco(hat_t discoHat, char *uniqueID) {
 	buf_writeStr_var(GET_DEV_TYPE(hat_config), (Buffer *)uart1_tx_buffer);
 	buf_writeStr_var("/", (Buffer *)uart1_tx_buffer);
 	buf_writeStr_var(uniqueID, (Buffer *)uart1_tx_buffer);
-	wifi_send_AT("/config\",\"\",0,0\r\n", check_OK);
+	wifi_send_AT("/config\",\"{}\",0,0\r\n", check_OK);
 }
 
 void wifi_send_mqtt_disco(hat_t discoHat, char *uniqueID, device_class_t dev_class) {

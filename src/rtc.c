@@ -7,6 +7,9 @@
 
 #include "stm32l0xx.h"
 #include "main.h"
+#include "stdbool.h"
+
+bool rtc_isSetup = false;
 
 void rtc_init()
 {
@@ -30,11 +33,13 @@ void rtc_init()
 
 	// enable LSI clock in stop mode
 	SET_BIT(RCC->CSR, RCC_CSR_LSION);
+
+	rtc_isSetup = true;
 }
 
 void rtc_wakeup(uint32_t time)
 {
-	if(READ_BIT(RCC->CSR, RCC_CSR_RTCEN) != RCC_CSR_RTCEN) {	// not enabled
+	if(rtc_isSetup == false) {	// not enabled
 		rtc_init();
 	}
 
@@ -112,6 +117,8 @@ void rtc_deinit() {
 
 	// disable LSI clock in stop mode
 	CLEAR_BIT(RCC->CSR, RCC_CSR_LSION);
+
+	rtc_isSetup = false;
 }
 
 void RTC_IRQHandler(void) {
