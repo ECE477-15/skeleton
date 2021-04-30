@@ -13,7 +13,7 @@
 #include "main.h"
 
 /********************** DEFINES **********************/
-#define BUFFER_SIZE 64
+#define BUFFER_SIZE 128
 #define BIG_BUFFER_SIZE 256
 
 #define BUF_USED(buffer) ((buffer->head - buffer->tail + BUFFER_SIZE) % BUFFER_SIZE)

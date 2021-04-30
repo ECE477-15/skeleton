@@ -28,10 +28,13 @@ void hat_interrupt_PB11(void) {
 	// set EXTI 11 to trigger from Port B
 	MODIFY_REG(SYSCFG->EXTICR[2], SYSCFG_EXTICR3_EXTI11, SYSCFG_EXTICR3_EXTI11_PB);
 
-	SET_BIT(EXTI->RTSR, EXTI_RTSR_RT11);	// rising edge
-//	SET_BIT(EXTI->FTSR, EXTI_FTSR_FT11); 	// falling edge
+	if((GET_HAT_CONFIG(global_state.connectedHat)->interruptCfg & INT_CFG_RISE) != 0x0) {
+		SET_BIT(EXTI->RTSR, EXTI_RTSR_RT11);	// rising edge
+	}
+	if((GET_HAT_CONFIG(global_state.connectedHat)->interruptCfg & INT_CFG_FALL) != 0x0) {
+		SET_BIT(EXTI->FTSR, EXTI_FTSR_FT11); 	// falling edge
+	}
 	WRITE_REG(EXTI->PR, EXTI_PR_PIF11);		// Clear pending bit (if any)
-//	SET_BIT(EXTI->EMR, EXTI_EMR_EM11);		// Enable Event
 	SET_BIT(EXTI->IMR, EXTI_IMR_IM11);		// Enable interrupt
 
 	NVIC_SetPriority(EXTI4_15_IRQn,0);
@@ -68,10 +71,10 @@ void hat_detect_interrupt() {
 void send_homeassistant_boolean_PB11() {
 	uint16_t value = ((GPIOB->IDR & GPIO_IDR_ID11) != 0x0);
 
-	// adjustment for active-low?
-//	if(GET_HAT_CONFIG(global_state->connectedHat)->activeLow == true) {
-//		value = !value;
-//	}
+	// adjustment for active-low
+	if((GET_HAT_CONFIG(global_state.connectedHat)->interruptCfg & INT_CFG_ACTIVELOW) != 0x0) {
+		value = !value;
+	}
 
 	// send homeassistant an update on a boolean sensor value
 	tx_req_frame_t txReq = {

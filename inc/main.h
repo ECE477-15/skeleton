@@ -13,6 +13,10 @@
 #define ATTR_OPTIMIZE(n)          __attribute__ ((optimize(XSTRING_(O##n))))
 #define __ALWAYS_INLINE 		  __attribute__ ((always_inline))
 
+#define INT_CFG_FALL 0x1
+#define INT_CFG_RISE 0x2
+#define INT_CFG_ACTIVELOW 0x4
+
 /****** Type Defs & Structs ********/
 typedef void (*fn_ptr)(void);
 
@@ -95,6 +99,7 @@ typedef struct {
 	uint16_t bin_off_delay;
 	bool state_topic;
 	bool cmd_topic;
+	uint8_t interruptCfg;
 } hat_config_t;
 
 typedef struct {

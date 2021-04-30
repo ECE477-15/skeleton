@@ -61,7 +61,7 @@ hat_config_t hat_list[HAT_LIST_LEN] = {
 	[magnet_switch] = {
 			.friendly_name = "Magnet Sensor",
 			.hat_resistance = 56000,
-			.gpio_setup = hat_interrupt_PB11,	// WANT RISING AND FALLING
+			.gpio_setup = hat_interrupt_PB11,
 			.type = external_interrupt,
 			.handler = send_homeassistant_boolean_PB11,
 			.hat_initial_setup = blank_setup,
@@ -70,6 +70,7 @@ hat_config_t hat_list[HAT_LIST_LEN] = {
 			.bin_off_delay = 0,
 			.state_topic = true,
 			.cmd_topic = false,
+			.interruptCfg = (INT_CFG_FALL | INT_CFG_RISE | INT_CFG_ACTIVELOW),
 	},
 	[push_button] = {
 			.friendly_name = "Push Button",
@@ -96,6 +97,7 @@ hat_config_t hat_list[HAT_LIST_LEN] = {
 		.bin_off_delay = 30,
 		.state_topic = true,
 		.cmd_topic = false,
+		.interruptCfg = INT_CFG_RISE,
 	},
 	[force_resistor] = {
 		.friendly_name = "Force Sensor",
