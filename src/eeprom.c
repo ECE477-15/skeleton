@@ -6,6 +6,7 @@
  */
 
 #include "eeprom.h"
+#include "main.h"
 
 void Eeprom_Write_Obj(uint8_t *wAddr, uint8_t *obj, uint16_t size) {
 	if((FLASH->PECR & FLASH_PECR_PELOCK) != RESET) {
@@ -21,7 +22,7 @@ void Eeprom_Write_Obj(uint8_t *wAddr, uint8_t *obj, uint16_t size) {
 		__set_PRIMASK(primask_bit);
 
 		if((FLASH->PECR & FLASH_PECR_PELOCK) != RESET) {
-//			error(); // TODO
+			error(__LINE__);
 		}
 	}
 

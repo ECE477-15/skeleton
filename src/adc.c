@@ -5,7 +5,10 @@
  *      Author: grantweiss
  */
 
+#include "stm32l0xx.h"
 #include <adc.h>
+
+// TODO convert all register manipulation to use macros
 
 void adc_calibrate() {
 	if ((ADC1->CR & ADC_CR_ADEN) != 0) {
@@ -17,6 +20,9 @@ void adc_calibrate() {
 }
 
 void adc_enable() {
+	CLEAR_BIT(ADC1->CR, ADC_CR_ADEN);
+	MODIFY_REG(ADC->CCR, ADC_CCR_PRESC, (ADC_CCR_PRESC_0 | ADC_CCR_PRESC_1 | ADC_CCR_PRESC_3));
+
 	ADC1->ISR |= ADC_ISR_ADRDY;
 	ADC1->CR |= ADC_CR_ADEN;
 
@@ -49,7 +55,7 @@ uint32_t adc_oneshot(uint32_t channel) {
 	ADC1->CFGR2 &= ~ADC_CFGR2_CKMODE;
 	ADC1->CFGR1 &= ~ADC_CFGR1_AUTOFF;
 
-	ADC1->SMPR |= ADC_SMPR_SMP_0 | ADC_SMPR_SMP_1 | ADC_SMPR_SMP_2; // ?
+	ADC1->SMPR |= ADC_SMPR_SMP; // sampling time, amount of time to charge adc capacitor
 	ADC1->CHSELR = channel;
 	while(!(ADC1->ISR & ADC_ISR_ADRDY));
 
