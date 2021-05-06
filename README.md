@@ -1,6 +1,6 @@
 # To-Do
 - [x] External interrupt (hat presence detection & digital sensors)
-- [ ] Dynamic Hat setup
+- [x] Dynamic Hat setup
 - [x] Hat configuration parameters
 - [x] Function to fetch hat ID from ADC reading (lookup)
 - [x] EEPROM (most recent configuration)
@@ -39,3 +39,47 @@
 | ----- | --------- |
 | PB13  | I2C2_SCL  |
 | PB14  | I2C2_SDA |
+
+# Project Structure
+.
+├── Debug
+├── LinkerScript.ld
+├── README.md
+├── STM32L0538-DISCO.xml
+├── inc
+│   ├── adc.h             ADC function declarations
+│   ├── batBaby.h         Battery Babysitter addresses and function decl.
+│   ├── core/...
+│   ├── delay.h           Delay function decl.
+│   ├── device/...
+│   ├── eeprom.h          EEPROM function decl., EEPROM storage memory structure
+│   ├── hats.h            Hat-specific function decl.
+│   ├── i2c.h             I2C driver function decl.
+│   ├── main.h            Type of hat and settings enums; hat configuration struct; global variables & arrays; main function decl.; ref. resistor defined
+│   ├── mqtt.h            MQTT function decl.
+│   ├── ringBuf.h         Size defined; Macros and structs for buffer; function decl.
+│   ├── rtc.h             RTC function decl.
+│   ├── sleep.h           Sleep and Stop mode function decl.
+│   ├── uart.h            Baud rate defined; Buffer decl.; uart action flag decl.; function decl;
+│   ├── wifi.h            WiFi driver function decl.
+│   └── xbee.h            XBee driver function decl.
+├── skeleton2\ Run.cfg
+├── src
+│   ├── adc.c
+│   ├── batBaby.c
+│   ├── delay.c
+│   ├── eeprom.c
+│   ├── globals.c
+│   ├── hats.c
+│   ├── i2c.c
+│   ├── main.c
+│   ├── mqtt.c
+│   ├── ringBuf.c
+│   ├── rtc.c
+│   ├── sleep.c
+│   ├── system_stm32l0xx.c
+│   ├── testers.c
+│   ├── uart.c
+│   ├── wifi.c
+│   └── xbee.c
+└── startup/...
