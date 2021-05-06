@@ -41,6 +41,7 @@
 | PB14  | I2C2_SDA |
 
 # Project Structure
+'''
 .
 ├── Debug
 ├── LinkerScript.ld
@@ -83,3 +84,4 @@
 │   ├── wifi.c
 │   └── xbee.c
 └── startup/...
+'''
